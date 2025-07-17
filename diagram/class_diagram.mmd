@@ -58,3 +58,6 @@ classDiagram
     BasketItem "1" --> "1" Product
     Product "1" -- "0..*" Discount : has
     Customer ..> Order : creates
+
+    Admin ..> Product : creates/removes
+    Admin ..> Discount : creates

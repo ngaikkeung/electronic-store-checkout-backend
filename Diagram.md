@@ -54,6 +54,164 @@ sequenceDiagram
     W-->>F: Response to Frontend
 ```
 
+```mermaid
+sequenceDiagram
+    title Admin Creates a New Discount Deal
+
+    actor Admin
+    participant DiscountController
+    participant DiscountService
+    participant Database
+
+    Admin->>DiscountController: POST /api/admin/discounts (discountDetails, productId)
+    activate DiscountController
+
+    DiscountController->>DiscountService: createDiscountForProduct(discountDetails, productId)
+    activate DiscountService
+
+    DiscountService->>Database: Find Product by productId
+    activate Database
+    Database-->>DiscountService: Return Product
+    deactivate Database
+
+    DiscountService->>Database: Save New Discount
+    activate Database
+    Database-->>DiscountService: Return Saved Discount w/ ID
+    deactivate Database
+
+    DiscountService->>Database: Link Discount to Product
+    activate Database
+    Database-->>DiscountService: Link Confirmation
+    deactivate Database
+
+    DiscountService-->>DiscountController: Return Success Confirmation
+    deactivate DiscountService
+
+    DiscountController-->>Admin: 201 Created Response
+    deactivate DiscountController
+```
+
+```mermaid
+sequenceDiagram
+    title Admin Creates a New Product
+
+    actor Admin
+    participant ProductController
+    participant ProductService
+    participant Database
+
+    Admin->>ProductController: POST /api/admin/products (productDetails)
+    activate ProductController
+
+    ProductController->>ProductService: createProduct(productDetails)
+    activate ProductService
+
+    ProductService->>Database: Save New Product
+    activate Database
+    Database-->>ProductService: Return Saved Product w/ ID
+    deactivate Database
+
+    ProductService-->>ProductController: Return Created Product
+    deactivate ProductService
+
+    ProductController-->>Admin: 201 Created Response
+    deactivate ProductController
+```
+
+```mermaid
+sequenceDiagram
+    title User add product to basket
+
+    actor Customer
+    participant BasketController
+    participant BasketService
+    participant RedisCache
+    participant Database
+
+    Customer->>BasketController: POST /api/basket/items (productId, quantity)
+    activate BasketController
+
+    BasketController->>BasketService: addItemToBasket(userId, ...)
+    activate BasketService
+
+    %% First, atomically decrease stock in Redis
+    BasketService->>RedisCache: DECRBY stock:product:123 quantity
+    activate RedisCache
+    RedisCache-->>BasketService: Return newStockCount
+    deactivate RedisCache
+
+    alt newStockCount is less than 0 (Race condition lost)
+        %% We took too many, so we must put them back
+        BasketService->>RedisCache: INCRBY stock:product:123 quantity
+        RedisCache-->>BasketService: OK
+        BasketService-->>BasketController: Return Error (Out of Stock)
+    else Stock Reserved Successfully
+        %% Now that stock is reserved in Redis, update the persistent database
+        BasketService->>Database: BEGIN TRANSACTION
+        activate Database
+        BasketService->>Database: Add Item to User's Basket
+        BasketService->>Database: UPDATE Product Stock (Sync)
+        BasketService->>Database: COMMIT TRANSACTION
+        deactivate Database
+
+        BasketService-->>BasketController: Return Success
+    end
+    deactivate BasketService
+
+    BasketController-->>Customer: 200 OK or Error Response
+    deactivate BasketController
+```
+
+```mermaid
+sequenceDiagram
+    title User remove product from basket
+
+    actor Customer
+    participant BasketController
+    participant BasketService
+    participant StockService
+    participant RedisCache
+    participant Database
+
+    Customer->>BasketController: DELETE /api/basket/items/{itemId}
+    activate BasketController
+
+    BasketController->>BasketService: removeItemFromBasket(userId, itemId)
+    activate BasketService
+
+    note over BasketService: Get productId & quantity from removed item
+
+    %% The database operations are wrapped in a transaction
+    BasketService->>Database: BEGIN TRANSACTION
+    activate Database
+
+    BasketService->>Database: Remove Item from Basket
+    Database-->>BasketService: OK
+
+    %% Delegate the stock update to a dedicated service
+    BasketService->>StockService: increaseStock(productId, quantity)
+    activate StockService
+    StockService->>Database: UPDATE Product Stock (+quantity)
+    Database-->>StockService: OK
+    deactivate StockService
+    
+    BasketService->>Database: COMMIT TRANSACTION
+    deactivate Database
+
+    %% After the DB is successfully updated, sync the change to Redis
+    BasketService->>RedisCache: INCRBY stock:product:123 quantity
+    activate RedisCache
+    RedisCache-->>BasketService: OK
+    deactivate RedisCache
+
+    BasketService-->>BasketController: Return Success
+    deactivate BasketService
+
+    BasketController-->>Customer: 200 OK (Item Removed)
+    deactivate BasketController
+```
+
+
 ## Class Diagram
 
 ```mermaid
@@ -117,4 +275,7 @@ classDiagram
     BasketItem "1" --> "1" Product
     Product "1" -- "0..*" Discount : has
     Customer ..> Order : creates
+
+    Admin ..> Product : creates/removes
+    Admin ..> Discount : creates
 ``` 
