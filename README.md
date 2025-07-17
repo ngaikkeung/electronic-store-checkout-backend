@@ -41,11 +41,9 @@ src/
         └── EstorecheckoutApplicationTests.java
 ```
 
-## Diagrams
+## System design diagrams
 
-This project includes two diagrams located in the `diagram/` folder:
-
-- **High Level Design**: 
+- **High Level Design** 
 
 ```mermaid
 flowchart TD
@@ -69,7 +67,7 @@ flowchart TD
     C -->|Cache Refresh| D
 ```
 
-- **Sequence Diagram**: 
+- **Sequence Diagram** 
 
 ```mermaid
 sequenceDiagram
@@ -94,7 +92,7 @@ sequenceDiagram
 
 ```
 
-- **Class Diagram**:
+- **Class Diagram**
 
 ```mermaid
 classDiagram
