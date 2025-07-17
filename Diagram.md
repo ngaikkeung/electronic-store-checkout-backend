@@ -56,6 +56,33 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
+    title Admin Creates a New Product
+
+    actor Admin
+    participant ProductController
+    participant ProductService
+    participant Database
+
+    Admin->>ProductController: POST /api/admin/products (productDetails)
+    activate ProductController
+
+    ProductController->>ProductService: createProduct(productDetails)
+    activate ProductService
+
+    ProductService->>Database: Save New Product
+    activate Database
+    Database-->>ProductService: Return Saved Product w/ ID
+    deactivate Database
+
+    ProductService-->>ProductController: Return Created Product
+    deactivate ProductService
+
+    ProductController-->>Admin: 201 Created Response
+    deactivate ProductController
+```
+
+```mermaid
+sequenceDiagram
     title Admin Creates a New Discount Deal
 
     actor Admin
@@ -93,38 +120,12 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    title Admin Creates a New Product
-
-    actor Admin
-    participant ProductController
-    participant ProductService
-    participant Database
-
-    Admin->>ProductController: POST /api/admin/products (productDetails)
-    activate ProductController
-
-    ProductController->>ProductService: createProduct(productDetails)
-    activate ProductService
-
-    ProductService->>Database: Save New Product
-    activate Database
-    Database-->>ProductService: Return Saved Product w/ ID
-    deactivate Database
-
-    ProductService-->>ProductController: Return Created Product
-    deactivate ProductService
-
-    ProductController-->>Admin: 201 Created Response
-    deactivate ProductController
-```
-
-```mermaid
-sequenceDiagram
-    title User add product to basket
+    title Customer add product to Basket 
 
     actor Customer
     participant BasketController
     participant BasketService
+    participant StockService
     participant RedisCache
     participant Database
 
@@ -134,23 +135,45 @@ sequenceDiagram
     BasketController->>BasketService: addItemToBasket(userId, ...)
     activate BasketService
 
-    %% First, atomically decrease stock in Redis
-    BasketService->>RedisCache: DECRBY stock:product:123 quantity
-    activate RedisCache
-    RedisCache-->>BasketService: Return newStockCount
-    deactivate RedisCache
-
-    alt newStockCount is less than 0 (Race condition lost)
-        %% We took too many, so we must put them back
-        BasketService->>RedisCache: INCRBY stock:product:123 quantity
-        RedisCache-->>BasketService: OK
-        BasketService-->>BasketController: Return Error (Out of Stock)
+    %% 1. Reserve stock in Redis first to handle concurrency
+    BasketService->>StockService: reserveStock(productId, quantity)
+    activate StockService
+    StockService->>RedisCache: DECRBY stock:product:123 quantity
+    RedisCache-->>StockService: newStockCount
+    
+    alt newStockCount is less than 0
+        StockService->>RedisCache: INCRBY stock:product:123 quantity
+        StockService-->>BasketService: Return Error (Out of Stock)
     else Stock Reserved Successfully
-        %% Now that stock is reserved in Redis, update the persistent database
+        StockService-->>BasketService: Return Success
+    end
+    deactivate StockService
+
+    %% 2. If stock was reserved, manage the basket state
+    opt Stock Reserved Successfully
+        %% Try to get the current basket from the cache
+        BasketService->>RedisCache: GET basket:userId
+        RedisCache-->>BasketService: Cached Basket (or nil)
+
+        alt Cache Miss (Basket not in Redis)
+            BasketService->>Database: Get Basket by User ID
+            Database-->>BasketService: Basket Data
+        end
+        
+        note over BasketService: Add new item to basket object in memory
+
+        %% 3. Upsert the entire updated basket back into Redis
+        BasketService->>RedisCache: SET basket:userId (updatedBasket)
+        RedisCache-->>BasketService: OK
+
+        %% 4. Persist all changes to the primary database
         BasketService->>Database: BEGIN TRANSACTION
         activate Database
-        BasketService->>Database: Add Item to User's Basket
-        BasketService->>Database: UPDATE Product Stock (Sync)
+        BasketService->>Database: Upsert Basket & Items
+        BasketService->>StockService: persistStockUpdate(productId, -quantity)
+        activate StockService
+        StockService->>Database: UPDATE Product Stock
+        deactivate StockService
         BasketService->>Database: COMMIT TRANSACTION
         deactivate Database
 
@@ -159,12 +182,10 @@ sequenceDiagram
     deactivate BasketService
 
     BasketController-->>Customer: 200 OK or Error Response
-    deactivate BasketController
-```
-
+    deactivate BasketController```
 ```mermaid
 sequenceDiagram
-    title User remove product from basket
+    title Customer remove product from Basket
 
     actor Customer
     participant BasketController
@@ -179,30 +200,36 @@ sequenceDiagram
     BasketController->>BasketService: removeItemFromBasket(userId, itemId)
     activate BasketService
 
-    note over BasketService: Get productId & quantity from removed item
+    %% 1. Get basket from cache or DB
+    BasketService->>RedisCache: GET basket:userId
+    RedisCache-->>BasketService: Cached Basket (or nil)
+    
+    alt Cache Miss
+        BasketService->>Database: Get Basket by User ID
+        Database-->>BasketService: Basket Data
+    end
 
-    %% The database operations are wrapped in a transaction
+    note over BasketService: Remove item from basket object & get details
+
+    %% 2. Upsert updated basket back into Redis
+    BasketService->>RedisCache: SET basket:userId (updatedBasket)
+
+    %% 3. Persist changes to the database
     BasketService->>Database: BEGIN TRANSACTION
     activate Database
-
     BasketService->>Database: Remove Item from Basket
-    Database-->>BasketService: OK
-
-    %% Delegate the stock update to a dedicated service
-    BasketService->>StockService: increaseStock(productId, quantity)
+    BasketService->>StockService: persistStockUpdate(productId, +quantity)
     activate StockService
-    StockService->>Database: UPDATE Product Stock (+quantity)
-    Database-->>StockService: OK
+    StockService->>Database: UPDATE Product Stock
     deactivate StockService
-    
     BasketService->>Database: COMMIT TRANSACTION
     deactivate Database
 
-    %% After the DB is successfully updated, sync the change to Redis
-    BasketService->>RedisCache: INCRBY stock:product:123 quantity
-    activate RedisCache
-    RedisCache-->>BasketService: OK
-    deactivate RedisCache
+    %% 4. Sync stock back to Redis cache via StockService
+    BasketService->>StockService: syncStockToCache(productId, +quantity)
+    activate StockService
+    StockService->>RedisCache: INCRBY stock:product:123 quantity
+    deactivate StockService
 
     BasketService-->>BasketController: Return Success
     deactivate BasketService
