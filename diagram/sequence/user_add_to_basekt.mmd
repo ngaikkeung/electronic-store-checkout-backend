@@ -1,0 +1,41 @@
+sequenceDiagram
+    title Add to Basket (with Redis Atomic Stock)
+
+    actor Customer
+    participant BasketController
+    participant BasketService
+    participant RedisCache
+    participant Database
+
+    Customer->>BasketController: POST /api/basket/items (productId, quantity)
+    activate BasketController
+
+    BasketController->>BasketService: addItemToBasket(userId, ...)
+    activate BasketService
+
+    %% First, atomically decrease stock in Redis
+    BasketService->>RedisCache: DECRBY stock:product:123 quantity
+    activate RedisCache
+    RedisCache-->>BasketService: Return newStockCount
+    deactivate RedisCache
+
+    alt newStockCount is less than 0 (Race condition lost)
+        %% We took too many, so we must put them back
+        BasketService->>RedisCache: INCRBY stock:product:123 quantity
+        RedisCache-->>BasketService: OK
+        BasketService-->>BasketController: Return Error (Out of Stock)
+    else Stock Reserved Successfully
+        %% Now that stock is reserved in Redis, update the persistent database
+        BasketService->>Database: BEGIN TRANSACTION
+        activate Database
+        BasketService->>Database: Add Item to User's Basket
+        BasketService->>Database: UPDATE Product Stock (Sync)
+        BasketService->>Database: COMMIT TRANSACTION
+        deactivate Database
+
+        BasketService-->>BasketController: Return Success
+    end
+    deactivate BasketService
+
+    BasketController-->>Customer: 200 OK or Error Response
+    deactivate BasketController

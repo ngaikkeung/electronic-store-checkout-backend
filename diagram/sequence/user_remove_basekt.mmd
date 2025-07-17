@@ -1,0 +1,46 @@
+sequenceDiagram
+    title Remove from Basket (with DB & Redis Sync)
+
+    actor Customer
+    participant BasketController
+    participant BasketService
+    participant StockService
+    participant RedisCache
+    participant Database
+
+    Customer->>BasketController: DELETE /api/basket/items/{itemId}
+    activate BasketController
+
+    BasketController->>BasketService: removeItemFromBasket(userId, itemId)
+    activate BasketService
+
+    note over BasketService: Get productId & quantity from removed item
+
+    %% The database operations are wrapped in a transaction
+    BasketService->>Database: BEGIN TRANSACTION
+    activate Database
+
+    BasketService->>Database: Remove Item from Basket
+    Database-->>BasketService: OK
+
+    %% Delegate the stock update to a dedicated service
+    BasketService->>StockService: increaseStock(productId, quantity)
+    activate StockService
+    StockService->>Database: UPDATE Product Stock (+quantity)
+    Database-->>StockService: OK
+    deactivate StockService
+    
+    BasketService->>Database: COMMIT TRANSACTION
+    deactivate Database
+
+    %% After the DB is successfully updated, sync the change to Redis
+    BasketService->>RedisCache: INCRBY stock:product:123 quantity
+    activate RedisCache
+    RedisCache-->>BasketService: OK
+    deactivate RedisCache
+
+    BasketService-->>BasketController: Return Success
+    deactivate BasketService
+
+    BasketController-->>Customer: 200 OK (Item Removed)
+    deactivate BasketController
