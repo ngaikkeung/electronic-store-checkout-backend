@@ -338,10 +338,11 @@ erDiagram
 
     DISCOUNTS {
         discount_id bigint PK
+        product_id bigint FK "nullable"
         description varchar
-        percentage decimal
+        varchar discount_type "e.g., 'PERCENTAGE', 'BOGO_50_PERCENT_OFF_SECOND'"
+        json rules "e.g., {'percentage': 15} or {'buy_quantity': 1, 'get_quantity': 1, 'discount_percentage': 50}"
         expiration_date datetime
-        product_id bigint FK
     }
 
     ORDERS {
