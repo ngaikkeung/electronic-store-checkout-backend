@@ -35,6 +35,7 @@ Endpoints for administrators to manage the store.
 | `POST` | `/api/admin/products`  | Creates a new product.                        | `ROLE_ADMIN`  |
 | `GET`  | `/api/admin/products`  | Gets a paginated list of all products.        | `ROLE_ADMIN`  |
 | `POST` | `/api/admin/discounts` | Creates a new discount for a product.         | `ROLE_ADMIN`  |
+| `PUT`  | `/api/admin/discounts/{discountId}`   | Edits an existing discount.                   | `ROLE_ADMIN`  |
 | `GET`  | `/api/admin/orders`    | Gets a paginated list of all customer orders. | `ROLE_ADMIN`  |
 
 ### **`POST /api/admin/products`**
@@ -84,28 +85,73 @@ Gets a paginated list of all products.
 ```
 
 ### **`POST /api/admin/discounts`**
+Creates a new discount. It can be a simple percentage, a complex rule-based deal, or a site-wide offer.
 
-Creates a new discount for a product.
+**Example 1: Site-Wide 10% Off**
+```json
+{
+  "productId": null,
+  "description": "10% Off Sitewide",
+  "discountType": "PERCENTAGE",
+  "rules": {
+    "percentage": 10
+  },
+  "expirationDate": "2025-12-31T23:59:59Z"
+}
+```
+
+**Example 2: "Buy 1 Get 50% Off Second" for a specific product**
+```json
+{
+  "productId": "101",
+  "description": "Buy 1 Get 1 50% Off",
+  "discountType": "BOGO_50_PERCENT_OFF_SECOND",
+  "rules": {
+    "buyQuantity": 1,
+    "getQuantity": 1,
+    "discountPercentage": 50
+  },
+  "expirationDate": "2025-12-31T23:59:59Z"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "discountId": "58",
+  "productId": "101",
+  "description": "Buy 1 Get 1 50% Off",
+  "discountType": "BOGO_50_PERCENT_OFF_SECOND"
+}
+```
+### **`PUT /api/admin/discounts/{discountId}`**
+
+Edits an existing discount. Allows updating the description, type, rules, expiration date, or associated product.
 
 **Request Body:**
 
 ```json
 {
   "productId": "101",
-  "description": "Holiday Special",
-  "percentage": 10.0,
-  "expirationDate": "2025-12-31T23:59:59Z"
+  "description": "Buy 2 Get 1 Free",
+  "discountType": "BUY_2_GET_1_FREE",
+  "rules": {
+    "buyQuantity": 2,
+    "getQuantity": 1,
+    "discountPercentage": 100
+  },
+  "expirationDate": "2026-01-01T23:59:59Z"
 }
 ```
 
-**Response (201 Created):**
+**Response (200 OK):**
 
 ```json
 {
-  "discountId": "56",
+  "discountId": "58",
   "productId": "101",
-  "description": "Holiday Special",
-  "percentage": 10.0
+  "description": "Buy 2 Get 1 Free",
+  "discountType": "BUY_2_GET_1_FREE"
 }
 ```
 
@@ -143,6 +189,7 @@ Endpoints for customer interactions.
 | `POST`   | `/api/orders`                | Creates an order from the current user's basket.            | `ROLE_CUSTOMER` |
 | `GET`    | `/api/orders`                | Gets a paginated list of the current user's past orders.    | `ROLE_CUSTOMER` |
 | `GET`    | `/api/orders/{orderId}`      | Gets the details of a single past order.                    | `ROLE_CUSTOMER` |
+| `GET`    | `/api/orders/{orderId}/receipt`      | Gets a receipt for an order, including items, deals applied, and total price. | `ROLE_CUSTOMER` |
 
 ### **`GET /api/products`**
 
@@ -287,5 +334,31 @@ Gets the details of a single past order.
   "items": [
     { "productId": "101", "name": "Wireless Mechanical Keyboard", "quantity": 1, "price": 129.99 }
   ]
+}
+```
+
+### **`GET /api/orders/{orderId}/receipt`**
+
+Gets a receipt for a specific order, including all purchased items, deals applied, and the total price.
+
+**Example Request:** `GET /api/orders/902/receipt`
+
+**Response (200 OK):**
+
+```json
+{
+  "orderId": "902",
+  "purchasedAt": "2025-07-17T20:16:00Z",
+  "items": [
+    { "productId": "101", "name": "Wireless Mechanical Keyboard", "quantity": 1, "unitPrice": 129.99, "total": 129.99 },
+    { "productId": "102", "name": "High-Performance Gaming Mouse", "quantity": 2, "unitPrice": 79.99, "total": 159.98 }
+  ],
+  "dealsApplied": [
+    { "description": "Buy 2 Get 1 Free", "discount": 79.99 },
+    { "description": "10% Off Sitewide", "discount": 28.00 }
+  ],
+  "subtotal": 289.97,
+  "totalDiscount": 107.99,
+  "totalPrice": 181.98
 }
 ```
