@@ -28,8 +28,8 @@ erDiagram
         discount_id bigint PK
         product_id bigint FK "nullable"
         description varchar
-        varchar discount_type "e.g., 'PERCENTAGE', 'BOGO_50_PERCENT_OFF_SECOND'"
-        json rules "e.g., {'percentage': 15} or {'buy_quantity': 1, 'get_quantity': 1, 'discount_percentage': 50}"
+        nt_type varchar "e.g., 'PERCENTAGE', 'BOGO_50_PERCENT_OFF_SECOND'"
+        rules json "e.g., {'percentage': 15} or {'buy_quantity': 1, 'get_quantity': 1, 'discount_percentage': 50}"
         expiration_date datetime
     }
 

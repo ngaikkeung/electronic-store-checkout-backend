@@ -254,7 +254,7 @@ classDiagram
     class Admin {
         +createProduct(productDetails)
         +removeProduct(productId)
-        +addDiscount(productId, discountDetails)
+        +addDiscount(details)
     }
 
     class Customer {
@@ -267,31 +267,52 @@ classDiagram
         +String productId
         +String name
         +double price
-        +int stock
-        +String category
     }
 
     class Discount {
         +String discountId
-        +double percentage
+        +String description
+        +String discountType
+        +Map(String, Object) rules
         +Date expirationDate
     }
 
-    class Basket {
-        +String basketId
-        -List~BasketItem~ items
-        +calculateTotal() double
+    class PricingService {
+        +calculateDiscounts(basket)
     }
 
-    class BasketItem {
-        +Product product
-        +int quantity
+    class DiscountStrategy {
+        <<interface>>
+        +apply(basket, rules) double
+    }
+
+    class PercentageDiscountStrategy {
+        +apply(basket, rules) double
+    }
+
+    class BogoDealStrategy {
+        +apply(basket, rules) double
+    }
+
+    class FixedAmountOffStrategy {
+        +apply(basket, rules) double
+    }
+
+    class SpendThresholdStrategy {
+        +apply(basket, rules) double
     }
     
+    class BundlePriceStrategy {
+        +apply(basket, rules) double
+    }
+
+    class Basket {
+        -List(BasketItem) items
+        +addItem(item)
+    }
+
     class Order {
         +String orderId
-        +List~Product~ purchasedItems
-        +List~Discount~ appliedDeals
         +double totalPrice
     }
 
@@ -300,15 +321,27 @@ classDiagram
     User <|-- Customer
     
     Customer "1" -- "1" Basket : has
-    Basket "1" *-- "*" BasketItem : contains
-    BasketItem "1" --> "1" Product
-    Product "1" -- "0..*" Discount : has
+    Basket "1" *-- "*" Product : contains
+    
+    %% A discount can optionally apply to one product
+    Discount "0..*" -- "0..1" Product : applies to
     Customer ..> Order : creates
 
+    %% Admin manages products and discounts
     Admin ..> Product : creates/removes
     Admin ..> Discount : creates
+
+    %% Strategy Pattern for Discounts
+    PricingService ..> DiscountStrategy : uses
+    PricingService ..> Discount : reads
+    DiscountStrategy <|.. PercentageDiscountStrategy : implements
+    DiscountStrategy <|.. BogoDealStrategy : implements
+    DiscountStrategy <|.. FixedAmountOffStrategy : implements
+    DiscountStrategy <|.. SpendThresholdStrategy : implements
+    DiscountStrategy <|.. BundlePriceStrategy : implements
 ``` 
 
+ER Diagram
 ```mermaid
 erDiagram
     USERS {
