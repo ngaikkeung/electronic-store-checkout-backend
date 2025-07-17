@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant F as Frontend
+    participant W as Web Server
+    participant C as Cache
+    participant D as Database
+    participant K as Kafka (Message Queue)
+
+    F->>W: REST API
+    W->>C: Read from Cache
+    alt Cache Miss
+        C->>D: Fetch from Database
+        D-->>C: Return Data
+        C-->>W: Cached Response
+    else Cache Hit
+        C-->>W: Return Cached Data
+    end
+    W->>K: Publish Event
+    K-->>W: Event Notification
+    W-->>F: Response to Frontend

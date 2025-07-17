@@ -1,0 +1,19 @@
+flowchart TD
+    %% === Frontend ===
+    A[Frontend]
+
+    %% === Backend Components ===
+    subgraph Backend
+        B[Web Server]
+        C[(Cache)]
+        D[(Database)]
+        E{{Kafka Message Queue}}
+    end
+
+    %% === Connections ===
+    A -->|REST API| B
+    B -->|Read & Write| C
+    B -->|Query & Update| D
+    B -->|Publish & Consume| E
+    E -->|Event Notification| B
+    C -->|Cache Refresh| D

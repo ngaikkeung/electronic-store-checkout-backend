@@ -1,0 +1,60 @@
+classDiagram
+    class User {
+        +String userId
+        +String name
+        +String email
+    }
+
+    class Admin {
+        +createProduct(productDetails)
+        +removeProduct(productId)
+        +addDiscount(productId, discountDetails)
+    }
+
+    class Customer {
+        +addProductToBasket(product, quantity)
+        +removeProductFromBasket(product)
+        +checkout() Order
+    }
+
+    class Product {
+        +String productId
+        +String name
+        +double price
+        +int stock
+        +String category
+    }
+
+    class Discount {
+        +String discountId
+        +double percentage
+        +Date expirationDate
+    }
+
+    class Basket {
+        +String basketId
+        -List~BasketItem~ items
+        +calculateTotal() double
+    }
+
+    class BasketItem {
+        +Product product
+        +int quantity
+    }
+    
+    class Order {
+        +String orderId
+        +List~Product~ purchasedItems
+        +List~Discount~ appliedDeals
+        +double totalPrice
+    }
+
+    %% --- Relationships ---
+    User <|-- Admin
+    User <|-- Customer
+    
+    Customer "1" -- "1" Basket : has
+    Basket "1" *-- "*" BasketItem : contains
+    BasketItem "1" --> "1" Product
+    Product "1" -- "0..*" Discount : has
+    Customer ..> Order : creates
