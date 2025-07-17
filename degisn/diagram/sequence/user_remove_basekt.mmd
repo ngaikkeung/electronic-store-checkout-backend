@@ -1,0 +1,52 @@
+sequenceDiagram
+    title Customer remove product from Basket
+
+    actor Customer
+    participant BasketController
+    participant BasketService
+    participant StockService
+    participant RedisCache
+    participant Database
+
+    Customer->>BasketController: DELETE /api/basket/items/{itemId}
+    activate BasketController
+
+    BasketController->>BasketService: removeItemFromBasket(userId, itemId)
+    activate BasketService
+
+    %% 1. Get basket from cache or DB
+    BasketService->>RedisCache: GET basket:userId
+    RedisCache-->>BasketService: Cached Basket (or nil)
+    
+    alt Cache Miss
+        BasketService->>Database: Get Basket by User ID
+        Database-->>BasketService: Basket Data
+    end
+
+    note over BasketService: Remove item from basket object & get details
+
+    %% 2. Upsert updated basket back into Redis
+    BasketService->>RedisCache: SET basket:userId (updatedBasket)
+
+    %% 3. Persist changes to the database
+    BasketService->>Database: BEGIN TRANSACTION
+    activate Database
+    BasketService->>Database: Remove Item from Basket
+    BasketService->>StockService: persistStockUpdate(productId, +quantity)
+    activate StockService
+    StockService->>Database: UPDATE Product Stock
+    deactivate StockService
+    BasketService->>Database: COMMIT TRANSACTION
+    deactivate Database
+
+    %% 4. Sync stock back to Redis cache via StockService
+    BasketService->>StockService: syncStockToCache(productId, +quantity)
+    activate StockService
+    StockService->>RedisCache: INCRBY stock:product:123 quantity
+    deactivate StockService
+
+    BasketService-->>BasketController: Return Success
+    deactivate BasketService
+
+    BasketController-->>Customer: 200 OK (Item Removed)
+    deactivate BasketController

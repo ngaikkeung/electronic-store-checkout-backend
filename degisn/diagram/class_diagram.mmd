@@ -1,0 +1,95 @@
+classDiagram
+    class User {
+        +String userId
+        +String name
+        +String email
+    }
+
+    class Admin {
+        +createProduct(productDetails)
+        +removeProduct(productId)
+        +addDiscount(details)
+    }
+
+    class Customer {
+        +addProductToBasket(product, quantity)
+        +removeProductFromBasket(product)
+        +checkout() Order
+    }
+
+    class Product {
+        +String productId
+        +String name
+        +double price
+    }
+
+    class Discount {
+        +String discountId
+        +String description
+        +String discountType
+        +Map(String, Object) rules
+        +Date expirationDate
+    }
+
+    class PricingService {
+        +calculateDiscounts(basket)
+    }
+
+    class DiscountStrategy {
+        <<interface>>
+        +apply(basket, rules) double
+    }
+
+    class PercentageDiscountStrategy {
+        +apply(basket, rules) double
+    }
+
+    class BogoDealStrategy {
+        +apply(basket, rules) double
+    }
+
+    class FixedAmountOffStrategy {
+        +apply(basket, rules) double
+    }
+
+    class SpendThresholdStrategy {
+        +apply(basket, rules) double
+    }
+    
+    class BundlePriceStrategy {
+        +apply(basket, rules) double
+    }
+
+    class Basket {
+        -List(BasketItem) items
+        +addItem(item)
+    }
+
+    class Order {
+        +String orderId
+        +double totalPrice
+    }
+
+    %% --- Relationships ---
+    User <|-- Admin
+    User <|-- Customer
+    
+    Customer "1" -- "1" Basket : has
+    Basket "1" *-- "*" Product : contains
+    
+    %% A discount can optionally apply to one product
+    Discount "0..*" -- "0..1" Product : applies to
+    Customer ..> Order : creates
+
+    %% Admin manages products and discounts
+    Admin ..> Product : creates/removes
+    Admin ..> Discount : creates
+
+    %% Strategy Pattern for Discounts
+    PricingService ..> DiscountStrategy : uses
+    PricingService ..> Discount : reads
+    DiscountStrategy <|.. PercentageDiscountStrategy : implements
+    DiscountStrategy <|.. BogoDealStrategy : implements
+    DiscountStrategy <|.. FixedAmountOffStrategy : implements
+    DiscountStrategy <|.. SpendThresholdStrategy : implements
+    DiscountStrategy <|.. BundlePriceStrategy : implements

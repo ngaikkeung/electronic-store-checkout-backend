@@ -1,0 +1,64 @@
+sequenceDiagram
+    title Customer add product to Basket 
+
+    actor Customer
+    participant BasketController
+    participant BasketService
+    participant StockService
+    participant RedisCache
+    participant Database
+
+    Customer->>BasketController: POST /api/basket/items (productId, quantity)
+    activate BasketController
+
+    BasketController->>BasketService: addItemToBasket(userId, ...)
+    activate BasketService
+
+    %% 1. Reserve stock in Redis first to handle concurrency
+    BasketService->>StockService: reserveStock(productId, quantity)
+    activate StockService
+    StockService->>RedisCache: DECRBY stock:product:123 quantity
+    RedisCache-->>StockService: newStockCount
+    
+    alt newStockCount is less than 0
+        StockService->>RedisCache: INCRBY stock:product:123 quantity
+        StockService-->>BasketService: Return Error (Out of Stock)
+    else Stock Reserved Successfully
+        StockService-->>BasketService: Return Success
+    end
+    deactivate StockService
+
+    %% 2. If stock was reserved, manage the basket state
+    opt Stock Reserved Successfully
+        %% Try to get the current basket from the cache
+        BasketService->>RedisCache: GET basket:userId
+        RedisCache-->>BasketService: Cached Basket (or nil)
+
+        alt Cache Miss (Basket not in Redis)
+            BasketService->>Database: Get Basket by User ID
+            Database-->>BasketService: Basket Data
+        end
+        
+        note over BasketService: Add new item to basket object in memory
+
+        %% 3. Upsert the entire updated basket back into Redis
+        BasketService->>RedisCache: SET basket:userId (updatedBasket)
+        RedisCache-->>BasketService: OK
+
+        %% 4. Persist all changes to the primary database
+        BasketService->>Database: BEGIN TRANSACTION
+        activate Database
+        BasketService->>Database: Upsert Basket & Items
+        BasketService->>StockService: persistStockUpdate(productId, -quantity)
+        activate StockService
+        StockService->>Database: UPDATE Product Stock
+        deactivate StockService
+        BasketService->>Database: COMMIT TRANSACTION
+        deactivate Database
+
+        BasketService-->>BasketController: Return Success
+    end
+    deactivate BasketService
+
+    BasketController-->>Customer: 200 OK or Error Response
+    deactivate BasketController

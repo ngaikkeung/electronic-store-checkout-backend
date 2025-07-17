@@ -1,0 +1,71 @@
+erDiagram
+    USERS {
+        user_id bigint PK
+        name varchar
+        email varchar UK
+        created_at datetime
+    }
+
+    ROLES {
+        role_id int PK
+        role_name varchar UK
+    }
+
+    PERMISSIONS {
+        permission_id int PK
+        permission_name varchar UK
+    }
+
+    PRODUCTS {
+        product_id bigint PK
+        name varchar
+        price decimal
+        stock int
+        category varchar
+    }
+
+    DISCOUNTS {
+        discount_id bigint PK
+        product_id bigint FK "nullable"
+        description varchar
+        nt_type varchar "e.g., 'PERCENTAGE', 'BOGO_50_PERCENT_OFF_SECOND'"
+        rules json "e.g., {'percentage': 15} or {'buy_quantity': 1, 'get_quantity': 1, 'discount_percentage': 50}"
+        expiration_date datetime
+    }
+
+    ORDERS {
+        order_id bigint PK
+        user_id bigint FK
+        status varchar
+        total_price decimal
+        created_at datetime
+    }
+
+    ORDER_ITEMS {
+        order_item_id bigint PK
+        order_id bigint FK
+        product_id bigint FK
+        quantity int
+        price_at_purchase decimal
+    }
+
+    %% --- Join Tables for Many-to-Many Relationships ---
+    USER_ROLES {
+        user_id bigint FK
+        role_id int FK
+    }
+
+    ROLE_PERMISSIONS {
+        role_id int FK
+        permission_id int FK
+    }
+
+    %% --- Relationships ---
+    USERS ||--o{ USER_ROLES : "has"
+    ROLES ||--o{ USER_ROLES : "has"
+    ROLES ||--o{ ROLE_PERMISSIONS : "grants"
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : "is granted by"
+    USERS ||--o{ ORDERS : "places"
+    ORDERS ||--o{ ORDER_ITEMS : "contains"
+    PRODUCTS ||--o{ ORDER_ITEMS : "appears in"
+    PRODUCTS ||--o{ DISCOUNTS : "can have"

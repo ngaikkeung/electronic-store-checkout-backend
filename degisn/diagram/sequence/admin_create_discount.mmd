@@ -1,0 +1,34 @@
+sequenceDiagram
+    title Admin Creates a New Discount Deal
+
+    actor Admin
+    participant DiscountController
+    participant DiscountService
+    participant Database
+
+    Admin->>DiscountController: POST /api/admin/discounts (discountDetails, productId)
+    activate DiscountController
+
+    DiscountController->>DiscountService: createDiscountForProduct(discountDetails, productId)
+    activate DiscountService
+
+    DiscountService->>Database: Find Product by productId
+    activate Database
+    Database-->>DiscountService: Return Product
+    deactivate Database
+
+    DiscountService->>Database: Save New Discount
+    activate Database
+    Database-->>DiscountService: Return Saved Discount w/ ID
+    deactivate Database
+
+    DiscountService->>Database: Link Discount to Product
+    activate Database
+    Database-->>DiscountService: Link Confirmation
+    deactivate Database
+
+    DiscountService-->>DiscountController: Return Success Confirmation
+    deactivate DiscountService
+
+    DiscountController-->>Admin: 201 Created Response
+    deactivate DiscountController
