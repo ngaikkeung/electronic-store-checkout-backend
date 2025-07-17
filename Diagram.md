@@ -14,7 +14,7 @@ flowchart TD
     %% === Backend Components ===
     subgraph Backend
         B[Web Server]
-        C[(Cache)]
+        C[(Redis)]
         D[(Database)]
         E{{Kafka Message Queue}}
     end
