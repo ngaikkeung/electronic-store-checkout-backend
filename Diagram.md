@@ -182,7 +182,9 @@ sequenceDiagram
     deactivate BasketService
 
     BasketController-->>Customer: 200 OK or Error Response
-    deactivate BasketController```
+    deactivate BasketController
+```
+
 ```mermaid
 sequenceDiagram
     title Customer remove product from Basket
