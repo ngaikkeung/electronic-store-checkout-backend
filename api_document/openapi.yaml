@@ -68,7 +68,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UnifiedResponseOfCustomPageProduct'
+                $ref: '#/components/schemas/UnifiedResponseOfCustomPageProductResponse'
   /api/products/{id}:
     get:
       summary: Get a product by ID
@@ -87,7 +87,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UnifiedResponseOfProduct'
+                $ref: '#/components/schemas/UnifiedResponseOfProductResponse'
         '404':
           description: Product not found
   /api/orders:
@@ -431,6 +431,45 @@ components:
         category:
           type: string
           example: Electronics
+    ProductResponse:
+      type: object
+      properties:
+        productId:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Laptop
+        price:
+          type: number
+          format: float
+          example: 1200.00
+        category:
+          type: string
+          example: Electronics
+        inStock:
+          type: boolean
+          example: true
+    CustomPageProductResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
     CustomPageProduct:
       type: object
       properties:
@@ -653,20 +692,7 @@ components:
         success:
           type: boolean
           example: true
-    UnifiedResponseOfProduct:
-      allOf:
-        - $ref: '#/components/schemas/UnifiedResponse'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/Product'
-    UnifiedResponseOfCustomPageProduct:
-      allOf:
-        - $ref: '#/components/schemas/UnifiedResponse'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/CustomPageProduct'
+    
     UnifiedResponseOfOrder:
       allOf:
         - $ref: '#/components/schemas/UnifiedResponse'
@@ -727,3 +753,17 @@ components:
           properties:
             data:
               nullable: true
+    UnifiedResponseOfProduct:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Product'
+    UnifiedResponseOfCustomPageProduct:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CustomPageProduct'
