@@ -18,7 +18,7 @@ public class Discount {
     private Long discountId;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = true)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id", nullable = true)
     private Product product;
 
     @Column(nullable = false)
