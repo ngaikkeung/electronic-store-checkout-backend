@@ -1,4 +1,4 @@
-package io.github.kkngai.estorecheckout.model.response;
+package io.github.kkngai.estorecheckout.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

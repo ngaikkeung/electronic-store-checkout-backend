@@ -1,5 +1,6 @@
-package io.github.kkngai.estorecheckout.model.request;
+package io.github.kkngai.estorecheckout.dto.request;
 
+import io.github.kkngai.estorecheckout.model.DiscountType;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,7 +9,7 @@ import java.time.LocalDateTime;
 public class DiscountCreateRequest {
     private Long productId;
     private String description;
-    private String discountType;
+    private DiscountType discountType;
     private String rules;
     private LocalDateTime expirationDate;
 }

@@ -14,6 +14,7 @@ public enum BusinessCode {
     EMPTY_BASKET("1005"),
     ORDER_NOT_FOUND("1006"),
     DISCOUNT_NOT_FOUND("1007"),
+    INVALID_DISCOUNT_RULES("1008"),
     SYSTEM_ERROR("9999");
 
     private final String code;

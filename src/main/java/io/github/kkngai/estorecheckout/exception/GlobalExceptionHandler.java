@@ -1,7 +1,7 @@
 package io.github.kkngai.estorecheckout.exception;
 
 import io.github.kkngai.estorecheckout.model.BusinessCode;
-import io.github.kkngai.estorecheckout.model.response.UnifiedResponse;
+import io.github.kkngai.estorecheckout.dto.response.UnifiedResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;

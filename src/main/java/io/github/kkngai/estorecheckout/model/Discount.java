@@ -26,7 +26,8 @@ public class Discount {
     private String description;
 
     @Column(name = "discount_type", nullable = false)
-    private String discountType;
+    @Enumerated(EnumType.STRING)
+    private DiscountType discountType;
 
     @Column(columnDefinition = "TEXT")
     private String rules; // Store JSON as String

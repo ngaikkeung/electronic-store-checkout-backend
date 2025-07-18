@@ -1,8 +1,8 @@
 package io.github.kkngai.estorecheckout.controller.admin;
 
 import io.github.kkngai.estorecheckout.model.Discount;
-import io.github.kkngai.estorecheckout.model.request.DiscountCreateRequest;
-import io.github.kkngai.estorecheckout.model.response.UnifiedResponse;
+import io.github.kkngai.estorecheckout.dto.request.DiscountCreateRequest;
+import io.github.kkngai.estorecheckout.dto.response.UnifiedResponse;
 import io.github.kkngai.estorecheckout.service.DiscountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

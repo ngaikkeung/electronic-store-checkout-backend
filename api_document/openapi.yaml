@@ -24,14 +24,14 @@ paths:
           required: false
           schema:
             type: number
-            format: float
+            format: double
         - name: priceMax
           in: query
           description: Maximum price for filtering
           required: false
           schema:
             type: number
-            format: float
+            format: double
         - name: inStock
           in: query
           description: Filter by in-stock status
@@ -422,7 +422,7 @@ components:
           example: Laptop
         price:
           type: number
-          format: float
+          format: double
           example: 1200.00
         stock:
           type: integer
@@ -443,7 +443,7 @@ components:
           example: Laptop
         price:
           type: number
-          format: float
+          format: double
           example: 1200.00
         category:
           type: string
@@ -506,7 +506,7 @@ components:
           example: "2023-01-01T12:00:00Z"
         totalAmount:
           type: number
-          format: float
+          format: double
           example: 150.75
         status:
           type: string
@@ -532,7 +532,7 @@ components:
           example: 2
         priceAtPurchase:
           type: number
-          format: float
+          format: double
           example: 75.37
     CustomPageOrder:
       type: object
@@ -588,7 +588,7 @@ components:
           example: 2
         totalPrice:
           type: number
-          format: float
+          format: double
           example: 150.75
     BasketItem:
       type: object
@@ -621,7 +621,7 @@ components:
           example: SUMMER20
         percentage:
           type: number
-          format: float
+          format: double
           example: 0.20
         startDate:
           type: string
