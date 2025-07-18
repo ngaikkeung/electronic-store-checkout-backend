@@ -702,7 +702,6 @@ components:
           format: date-time
           example: "2023-12-31T23:59:59Z"
           nullable: true
-          nullable: true
       required:
         - description
         - discountType
