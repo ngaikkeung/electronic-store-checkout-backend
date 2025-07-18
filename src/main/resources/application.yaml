@@ -17,6 +17,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  data:
+    redis:
+      host: redis
+      port: 6379
 server:
   port: 8080
 logging:
@@ -29,4 +33,4 @@ logging:
         type:
           descriptor:
             sql:
-              BasicBinder: TRACE 
+              BasicBinder: TRACE

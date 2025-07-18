@@ -1,10 +1,7 @@
 package io.github.kkngai.estorecheckout.service;
 
 import io.github.kkngai.estorecheckout.exception.BusinessException;
-import io.github.kkngai.estorecheckout.model.BusinessCode;
-import io.github.kkngai.estorecheckout.model.Order;
-import io.github.kkngai.estorecheckout.model.OrderItem;
-import io.github.kkngai.estorecheckout.model.User;
+import io.github.kkngai.estorecheckout.model.*;
 import io.github.kkngai.estorecheckout.dto.CustomPage;
 import io.github.kkngai.estorecheckout.repository.OrderItemRepository;
 import io.github.kkngai.estorecheckout.repository.OrderRepository;
@@ -37,7 +34,7 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(BusinessCode.USER_NOT_FOUND, "User not found"));
 
         // Get the user's basket
-        var basket = basketService.getOrCreateBasket(userId);
+        Basket basket = basketService.getOrCreateBasket(userId);
 
         if (basket.getItems().isEmpty()) {
             throw new BusinessException(BusinessCode.EMPTY_BASKET, "Cannot create order from an empty basket");

@@ -5,22 +5,37 @@ import io.github.kkngai.estorecheckout.model.*;
 import io.github.kkngai.estorecheckout.repository.BasketItemRepository;
 import io.github.kkngai.estorecheckout.repository.BasketRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BasketService {
 
     private final BasketRepository basketRepository;
     private final BasketItemRepository basketItemRepository;
     private final ProductService productService;
     private final UserService userService;
+    private final StockService stockService;
+    private final RedisTemplate<String, Basket> basketRedisTemplate;
+
+    private String getBasketKey(Long userId) {
+        return "basket:" + userId;
+    }
 
     @Transactional
     public Basket getOrCreateBasket(Long userId) {
+        Basket basket = basketRedisTemplate.opsForValue().get(getBasketKey(userId));
+        if (basket != null) {
+            return basket;
+        }
+
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new BusinessException(BusinessCode.USER_NOT_FOUND, "User not found"));
         return basketRepository.findByUser(user)
@@ -33,27 +48,40 @@ public class BasketService {
 
     @Transactional
     public BasketItem addProductToBasket(Long userId, Long productId, int quantity) {
-        Basket basket = getOrCreateBasket(userId);
-        Product product = productService.getProductById(productId)
-                .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found"));
-
-        Optional<BasketItem> existingItem = basket.getItems().stream()
-                .filter(item -> item.getProduct().getProductId().equals(productId))
-                .findFirst();
-
-        BasketItem basketItem;
-        if (existingItem.isPresent()) {
-            basketItem = existingItem.get();
-            basketItem.setQuantity(basketItem.getQuantity() + quantity);
-        } else {
-            basketItem = new BasketItem();
-            basketItem.setBasket(basket);
-            basketItem.setProduct(product);
-            basketItem.setQuantity(quantity);
-            basket.getItems().add(basketItem);
+        if (!stockService.reserveStock(productId, quantity)) {
+            throw new BusinessException(BusinessCode.PRODUCT_OUT_OF_STOCK, "Product with id: " + productId + " is out of stock or requested quantity is not available.");
         }
-        basketRepository.save(basket); // Save basket to cascade changes to items
-        return basketItemRepository.save(basketItem);
+
+        try {
+            Basket basket = getOrCreateBasket(userId);
+            Product product = productService.getProductById(productId)
+                    .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found"));
+
+            Optional<BasketItem> existingItem = basket.getItems().stream()
+                    .filter(item -> item.getProduct().getProductId().equals(productId))
+                    .findFirst();
+
+            BasketItem basketItem;
+            if (existingItem.isPresent()) {
+                basketItem = existingItem.get();
+                basketItem.setQuantity(basketItem.getQuantity() + quantity);
+            } else {
+                basketItem = new BasketItem();
+                basketItem.setBasket(basket);
+                basketItem.setProduct(product);
+                basketItem.setQuantity(quantity);
+                basket.getItems().add(basketItem);
+            }
+
+            basketRepository.save(basket);
+            stockService.persistStockUpdate(productId, -quantity);
+            basketRedisTemplate.opsForValue().set(getBasketKey(userId), basket, Duration.ofMinutes(30));
+            return basketItem;
+        } catch (Exception e) {
+            stockService.rollbackStock(productId, quantity);
+            log.error("Failed to add product: {} to basket, {}", productId, e.getMessage());
+            throw new BusinessException(BusinessCode.SYSTEM_ERROR, "Failed to add product to basket, " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -69,6 +97,8 @@ public class BasketService {
         basket.getItems().remove(itemToRemove);
         basketItemRepository.delete(itemToRemove);
         basketRepository.save(basket); // Update basket to reflect removal
+        stockService.persistStockUpdate(itemToRemove.getProduct().getProductId(), itemToRemove.getQuantity()); // Return stock to DB and update Redis
+        basketRedisTemplate.opsForValue().set(getBasketKey(userId), basket, Duration.ofMinutes(30)); // Update Redis cache
     }
 
     public Basket saveBasket(Basket basket) {
