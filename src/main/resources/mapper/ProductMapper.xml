@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.kkngai.estorecheckout.mapper.ProductMapper">
+
+    <resultMap id="productResultMap" type="io.github.kkngai.estorecheckout.model.Product">
+        <id property="productId" column="product_id"/>
+        <result property="name" column="name"/>
+        <result property="price" column="price"/>
+        <result property="stock" column="stock"/>
+        <result property="category" column="category"/>
+    </resultMap>
+
+    <select id="findById" resultMap="productResultMap">
+        SELECT product_id, name, price, stock, category
+        FROM products
+        WHERE product_id = #{productId}
+    </select>
+
+    <select id="findAll" resultMap="productResultMap">
+        SELECT product_id, name, price, stock, category
+        FROM products
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO products (name, price, stock, category)
+        VALUES (#{name}, #{price}, #{stock}, #{category})
+    </insert>
+
+    <update id="update">
+        UPDATE products
+        SET name = #{name},
+            price = #{price},
+            stock = #{stock},
+            category = #{category}
+        WHERE product_id = #{productId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM products
+        WHERE product_id = #{productId}
+    </delete>
+
+</mapper>

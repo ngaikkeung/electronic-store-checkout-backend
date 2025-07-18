@@ -3,29 +3,29 @@ package io.github.kkngai.estorecheckout.service;
 import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.*;
 import io.github.kkngai.estorecheckout.dto.CustomPage;
-import io.github.kkngai.estorecheckout.repository.OrderItemRepository;
-import io.github.kkngai.estorecheckout.repository.OrderRepository;
+import io.github.kkngai.estorecheckout.mapper.OrderItemMapper;
+import io.github.kkngai.estorecheckout.mapper.OrderMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
+    private final OrderMapper orderMapper;
+    private final OrderItemMapper orderItemMapper;
     private final BasketService basketService;
     private final UserService userService;
+    private final PricingService pricingService;
 
-    public CustomPage<Order> getAllOrders(Pageable pageable) {
-        Page<Order> page = orderRepository.findAll(pageable);
-        return new CustomPage<>(page);
+    public List<Order> getAllOrders(Pageable pageable) {
+        return orderMapper.findAll();
     }
 
     @Transactional
@@ -46,7 +46,7 @@ public class OrderService {
         order.setStatus("PROCESSING");
         order.setTotalPrice(basket.getTotalPrice());
         order.setCreatedAt(LocalDateTime.now());
-        order = orderRepository.save(order);
+        orderMapper.insert(order);
 
         // Move basket items to order items
         for (var basketItem : basket.getItems()) {
@@ -55,7 +55,7 @@ public class OrderService {
             orderItem.setProduct(basketItem.getProduct());
             orderItem.setQuantity(basketItem.getQuantity());
             orderItem.setPriceAtPurchase(basketItem.getProduct().getPrice());
-            orderItemRepository.save(orderItem);
+            orderItemMapper.insert(orderItem);
         }
 
         // Clear the basket after order creation
@@ -65,20 +65,19 @@ public class OrderService {
         return order;
     }
 
-    public CustomPage<Order> getUserOrders(Long userId, Pageable pageable) {
+    public List<Order> getUserOrders(Long userId, Pageable pageable) {
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new BusinessException(BusinessCode.USER_NOT_FOUND, "User not found"));
-        Page<Order> page = orderRepository.findByUser(user, pageable);
-        return new CustomPage<>(page);
+        return orderMapper.findByUserId(userId);
     }
 
     public Optional<Order> getOrderById(Long orderId) {
-        return orderRepository.findById(orderId);
+        return orderMapper.findById(orderId);
     }
 
     // This method would be more complex in a real scenario, involving discount calculations
     public Order getOrderReceipt(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderMapper.findById(orderId)
                 .orElseThrow(() -> new BusinessException(BusinessCode.ORDER_NOT_FOUND, "Order not found"));
         // In a real application, you would fetch order items, apply discounts, etc.
         // For now, we'll just return the order with its items (if fetched eagerly or through a separate call)

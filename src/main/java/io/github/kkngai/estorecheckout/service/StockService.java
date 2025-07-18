@@ -3,7 +3,7 @@ package io.github.kkngai.estorecheckout.service;
 import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Product;
-import io.github.kkngai.estorecheckout.repository.ProductRepository;
+import io.github.kkngai.estorecheckout.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class StockService {
 
-    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
     private final RedisTemplate<String, String> redisTemplate;
 
     private String getStockKey(Long productId) {
@@ -31,27 +31,29 @@ public class StockService {
         String stockKey = getStockKey(productId);
 
         if (Boolean.FALSE.equals(redisTemplate.hasKey(stockKey))) {
-            Product product = productRepository.findById(productId)
+            Product product = productMapper.findById(productId)
                     .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found with id: " + productId));
             initializeStock(productId, product.getStock());
         }
 
         Long newStock = redisTemplate.opsForValue().decrement(stockKey, quantity);
 
-        if (newStock >= 0) {
+        if (newStock != null && newStock >= 0) {
             return true;
         } else {
-            redisTemplate.opsForValue().increment(stockKey, quantity);
+            if (newStock != null) {
+                redisTemplate.opsForValue().increment(stockKey, quantity);
+            }
             return false;
         }
     }
 
     @Transactional
     public void persistStockUpdate(Long productId, Integer quantityChange) {
-        Product product = productRepository.findById(productId)
+        Product product = productMapper.findById(productId)
                 .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found with id: " + productId));
         product.setStock(product.getStock() + quantityChange);
-        productRepository.save(product);
+        productMapper.update(product);
 
         redisTemplate.opsForValue().set(getStockKey(productId), String.valueOf(product.getStock()));
     }

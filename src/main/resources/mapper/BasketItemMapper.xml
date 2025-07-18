@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.kkngai.estorecheckout.mapper.BasketItemMapper">
+
+    <resultMap id="basketItemResultMap" type="io.github.kkngai.estorecheckout.model.BasketItem">
+        <id property="basketItemId" column="basket_item_id"/>
+        <result property="basketId" column="basket_id"/>
+        <result property="productId" column="product_id"/>
+        <association property="basket" javaType="io.github.kkngai.estorecheckout.model.Basket"
+                     resultMap="io.github.kkngai.estorecheckout.mapper.BasketMapper.basketResultMap"/>
+        <association property="product" javaType="io.github.kkngai.estorecheckout.model.Product"
+                     resultMap="io.github.kkngai.estorecheckout.mapper.ProductMapper.productResultMap"/>
+        <result property="quantity" column="quantity"/>
+    </resultMap>
+
+    <select id="findById" resultMap="basketItemResultMap">
+        SELECT
+            bi.basket_item_id,
+            bi.basket_id,
+            bi.product_id,
+            bi.quantity,
+            b.basket_id AS basket_basketId,
+            b.user_id AS basket_userId,
+            b.created_at AS basket_createdAt,
+            b.updated_at AS basket_updatedAt,
+            p.product_id AS product_productId,
+            p.name AS product_name,
+            p.price AS product_price,
+            p.stock AS product_stock,
+            p.category AS product_category
+        FROM basket_items bi
+        LEFT JOIN baskets b ON bi.basket_id = b.basket_id
+        LEFT JOIN products p ON bi.product_id = p.product_id
+        WHERE bi.basket_item_id = #{basketItemId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="basketItemId">
+        INSERT INTO basket_items (basket_id, product_id, quantity)
+        VALUES (#{basketId}, #{productId}, #{quantity})
+    </insert>
+
+    <update id="update">
+        UPDATE basket_items
+        SET quantity = #{quantity}
+        WHERE basket_item_id = #{basketItemId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM basket_items
+        WHERE basket_item_id = #{basketItemId}
+    </delete>
+
+</mapper>

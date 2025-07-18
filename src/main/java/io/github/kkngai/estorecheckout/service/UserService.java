@@ -1,7 +1,7 @@
 package io.github.kkngai.estorecheckout.service;
 
 import io.github.kkngai.estorecheckout.model.User;
-import io.github.kkngai.estorecheckout.repository.UserRepository;
+import io.github.kkngai.estorecheckout.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +11,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+        return userMapper.findById(id);
     }
 }

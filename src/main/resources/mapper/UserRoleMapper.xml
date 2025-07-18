@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.kkngai.estorecheckout.mapper.UserRoleMapper">
+
+    <resultMap id="userRoleResultMap" type="io.github.kkngai.estorecheckout.model.UserRole">
+        <id property="userId" column="user_id"/>
+        <id property="roleId" column="role_id"/>
+        <association property="user" javaType="io.github.kkngai.estorecheckout.model.User"
+                     resultMap="io.github.kkngai.estorecheckout.mapper.UserMapper.userResultMap"/>
+        <association property="role" javaType="io.github.kkngai.estorecheckout.model.Role"
+                     resultMap="io.github.kkngai.estorecheckout.mapper.RoleMapper.roleResultMap"/>
+    </resultMap>
+
+    <select id="findByUserIdAndRoleId" resultMap="userRoleResultMap">
+        SELECT
+            ur.user_id,
+            ur.role_id,
+            u.user_id AS user_userId,
+            u.name AS user_name,
+            u.email AS user_email,
+            u.created_at AS user_createdAt,
+            r.role_id AS role_roleId,
+            r.role_name AS role_roleName
+        FROM user_roles ur
+        LEFT JOIN users u ON ur.user_id = u.user_id
+        LEFT JOIN roles r ON ur.role_id = r.role_id
+        WHERE ur.user_id = #{userId} AND ur.role_id = #{roleId}
+    </select>
+
+    <select id="findByUserId" resultMap="userRoleResultMap">
+        SELECT
+            ur.user_id,
+            ur.role_id,
+            u.user_id AS user_userId,
+            u.name AS user_name,
+            u.email AS user_email,
+            u.created_at AS user_createdAt,
+            r.role_id AS role_roleId,
+            r.role_name AS role_roleName
+        FROM user_roles ur
+        LEFT JOIN users u ON ur.user_id = u.user_id
+        LEFT JOIN roles r ON ur.role_id = r.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+
+    <select id="findByRoleId" resultMap="userRoleResultMap">
+        SELECT
+            ur.user_id,
+            ur.role_id,
+            u.user_id AS user_userId,
+            u.name AS user_name,
+            u.email AS user_email,
+            u.created_at AS user_createdAt,
+            r.role_id AS role_roleId,
+            r.role_name AS role_roleName
+        FROM user_roles ur
+        LEFT JOIN users u ON ur.user_id = u.user_id
+        LEFT JOIN roles r ON ur.role_id = r.role_id
+        WHERE ur.role_id = #{roleId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO user_roles (user_id, role_id)
+        VALUES (#{userId}, #{roleId})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM user_roles
+        WHERE user_id = #{userId} AND role_id = #{roleId}
+    </delete>
+
+</mapper>

@@ -6,11 +6,9 @@ import io.github.kkngai.estorecheckout.model.Product;
 import io.github.kkngai.estorecheckout.dto.request.ProductCreateRequest;
 import io.github.kkngai.estorecheckout.dto.CustomPage;
 import io.github.kkngai.estorecheckout.dto.response.ProductResponse;
-import io.github.kkngai.estorecheckout.repository.ProductRepository;
+import io.github.kkngai.estorecheckout.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,42 +20,26 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
 
-    public CustomPage<ProductResponse> getAllProductDTOs(String category, BigDecimal priceMin, BigDecimal priceMax, Boolean inStock, Pageable pageable) {
-        Specification<Product> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
-
-        if (category != null && !category.isEmpty()) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("category"), category));
-        }
-        if (priceMin != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("price"), priceMin));
-        }
-        if (priceMax != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("price"), priceMax));
-        }
-        if (inStock != null && inStock) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("stock"), 0));
-        }
-
-        Page<Product> page = productRepository.findAll(spec, pageable);
-        List<ProductResponse> content = page.getContent().stream()
+    public List<ProductResponse> getAllProductDTOs(String category, BigDecimal priceMin, BigDecimal priceMax, Boolean inStock) {
+        List<Product> products = productMapper.findAll(); // Simplified for now
+        return products.stream()
                 .map(ProductResponse::convertToProductResponse)
                 .collect(Collectors.toList());
-        return new CustomPage<>(content, page.getTotalElements(), page.getTotalPages(), page.getSize(), page.getNumber());
     }
 
-    public CustomPage<Product> getAllProducts(Pageable pageable) {
-        return new CustomPage<>(productRepository.findAll(pageable));
+    public List<Product> getAllProducts() {
+        return productMapper.findAll();
     }
 
     public Optional<ProductResponse> getProductDtoById(Long id) {
-        return productRepository.findById(id)
+        return productMapper.findById(id)
                 .map(ProductResponse::convertToProductResponse);
     }
 
     public Product getExistingProductById(Long id) {
-        return productRepository.findById(id)
+        return productMapper.findById(id)
                 .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found with id: " + id));
     }
 
@@ -69,23 +51,25 @@ public class ProductService {
                     product.setPrice(request.getPrice());
                     product.setStock(request.getStock());
                     product.setCategory(request.getCategory());
+                    productMapper.insert(product);
                     return product;
                 })
                 .collect(Collectors.toList());
-        return productRepository.saveAll(products);
+        return products;
     }
 
     public Product updateProduct(Long id, Product productDetails) {
-        Product product = productRepository.findById(id)
+        Product product = productMapper.findById(id)
                 .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found with id: " + id));
         product.setName(productDetails.getName());
         product.setPrice(productDetails.getPrice());
         product.setStock(productDetails.getStock());
         product.setCategory(productDetails.getCategory());
-        return productRepository.save(product);
+        productMapper.update(product);
+        return product;
     }
 
     public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+        productMapper.deleteById(id);
     }
 } 
