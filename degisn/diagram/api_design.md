@@ -32,37 +32,56 @@ Endpoints for administrators to manage the store.
 
 | Method | Endpoint               | Description                                   | Required Role |
 | :----- | :--------------------- | :-------------------------------------------- | :------------ |
-| `POST` | `/api/admin/products`  | Creates a new product.                        | `ROLE_ADMIN`  |
+| `POST` | `/api/admin/products`  | Creates one or more new products.             | `ROLE_ADMIN`  |
 | `GET`  | `/api/admin/products`  | Gets a paginated list of all products.        | `ROLE_ADMIN`  |
-| `POST` | `/api/admin/discounts` | Creates a new discount for a product.         | `ROLE_ADMIN`  |
+| `PUT`  | `/api/admin/products/{id}` | Updates an existing product.                  | `ROLE_ADMIN`  |
+| `DELETE` | `/api/admin/products/{id}` | Deletes a product.                            | `ROLE_ADMIN`  |
+| `POST` | `/api/admin/discounts` | Creates one or more new discounts.            | `ROLE_ADMIN`  |
 | `PUT`  | `/api/admin/discounts/{discountId}`   | Edits an existing discount.                   | `ROLE_ADMIN`  |
 | `GET`  | `/api/admin/orders`    | Gets a paginated list of all customer orders. | `ROLE_ADMIN`  |
 
 ### **`POST /api/admin/products`**
 
-Creates a new product.
+Creates one or more new products.
 
 **Request Body:**
 
 ```json
-{
-  "name": "High-Performance Gaming Mouse",
-  "price": 79.99,
-  "stock": 150,
-  "category": "Peripherals"
-}
+[
+  {
+    "name": "High-Performance Gaming Mouse",
+    "price": 79.99,
+    "stock": 150,
+    "category": "Peripherals"
+  },
+  {
+    "name": "Ergonomic Office Chair",
+    "price": 349.99,
+    "stock": 50,
+    "category": "Office Furniture"
+  }
+]
 ```
 
 **Response (201 Created):**
 
 ```json
-{
-  "productId": "102",
-  "name": "High-Performance Gaming Mouse",
-  "price": 79.99,
-  "stock": 150,
-  "category": "Peripherals"
-}
+[
+  {
+    "productId": "102",
+    "name": "High-Performance Gaming Mouse",
+    "price": 79.99,
+    "stock": 150,
+    "category": "Peripherals"
+  },
+  {
+    "productId": "103",
+    "name": "Ergonomic Office Chair",
+    "price": 349.99,
+    "stock": 50,
+    "category": "Office Furniture"
+  }
+]
 ```
 
 ### **`GET /api/admin/products`**
@@ -75,55 +94,80 @@ Gets a paginated list of all products.
 ```json
 {
   "content": [
-    { "productId": "101", "name": "Wireless Mechanical Keyboard", "price": 79.99, "stock": 50, "category": "Peripherals"},
-    { "productId": "102", "name": "High-Performance Gaming Mouse", "price": 79.99, "stock": 150, "category": "Peripherals"}
+    {
+      "productId": "101",
+      "name": "Wireless Mechanical Keyboard",
+      "price": 79.99,
+      "stock": 50,
+      "category": "Peripherals"
+    },
+    {
+      "productId": "102",
+      "name": "High-Performance Gaming Mouse",
+      "price": 79.99,
+      "stock": 150,
+      "category": "Peripherals"
+    }
   ],
-  "pageable": { "pageNumber": 0, "pageSize": 5 },
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 5
+  },
   "totalPages": 1,
   "totalElements": 2
 }
 ```
 
 ### **`POST /api/admin/discounts`**
-Creates a new discount. It can be a simple percentage, a complex rule-based deal, or a site-wide offer.
 
-**Example 1: Site-Wide 10% Off**
-```json
-{
-  "productId": null,
-  "description": "10% Off Sitewide",
-  "discountType": "PERCENTAGE",
-  "rules": {
-    "percentage": 10
-  },
-  "expirationDate": "2025-12-31T23:59:59Z"
-}
-```
+Creates one or more new discounts. It can be a simple percentage, a complex rule-based deal, or a site-wide offer.
 
-**Example 2: "Buy 1 Get 50% Off Second" for a specific product**
+**Request Body:**
+
 ```json
-{
-  "productId": "101",
-  "description": "Buy 1 Get 1 50% Off",
-  "discountType": "BOGO_50_PERCENT_OFF_SECOND",
-  "rules": {
-    "buyQuantity": 1,
-    "getQuantity": 1,
-    "discountPercentage": 50
+[
+  {
+    "productId": null,
+    "description": "10% Off Sitewide",
+    "discountType": "PERCENTAGE",
+    "rules": {
+      "percentage": 10
+    },
+    "expirationDate": "2025-12-31T23:59:59Z"
   },
-  "expirationDate": "2025-12-31T23:59:59Z"
-}
+  {
+    "productId": "101",
+    "description": "Buy 1 Get 1 50% Off",
+    "discountType": "BOGO_50_PERCENT_OFF_SECOND",
+    "rules": {
+      "buyQuantity": 1,
+      "getQuantity": 1,
+      "discountPercentage": 50
+    },
+    "expirationDate": "2025-12-31T23:59:59Z"
+  }
+]
 ```
 
 **Response (201 Created):**
+
 ```json
-{
-  "discountId": "58",
-  "productId": "101",
-  "description": "Buy 1 Get 1 50% Off",
-  "discountType": "BOGO_50_PERCENT_OFF_SECOND"
-}
+[
+  {
+    "discountId": "58",
+    "productId": "101",
+    "description": "Buy 1 Get 1 50% Off",
+    "discountType": "BOGO_50_PERCENT_OFF_SECOND"
+  },
+  {
+    "discountId": "59",
+    "productId": null,
+    "description": "10% Off Sitewide",
+    "discountType": "PERCENTAGE"
+  }
+]
 ```
+
 ### **`PUT /api/admin/discounts/{discountId}`**
 
 Edits an existing discount. Allows updating the description, type, rules, expiration date, or associated product.
@@ -165,9 +209,17 @@ Gets a paginated list of all customer orders.
 ```json
 {
   "content": [
-    { "orderId": "901", "userId": "45", "status": "SHIPPED", "totalPrice": 129.99 }
+    {
+      "orderId": "901",
+      "userId": "45",
+      "status": "SHIPPED",
+      "totalPrice": 129.99
+    }
   ],
-  "pageable": { "pageNumber": 0, "pageSize": 10 },
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 10
+  },
   "totalPages": 1,
   "totalElements": 1
 }
@@ -205,13 +257,18 @@ This request asks for products in the "peripherals" category, with a price betwe
 ```json
 {
   "content": [
-    { "productId": "102", "name": "High-Performance Gaming Mouse", "price": 79.99, "stock": 150 },
     {
-        "productId": "102",
-        "name": "High-Performance Gaming Mouse",
-        "price": 79.99,
-        "stock": 49,
-        "category": "Peripherals"
+      "productId": "102",
+      "name": "High-Performance Gaming Mouse",
+      "price": 79.99,
+      "stock": 150
+    },
+    {
+      "productId": "102",
+      "name": "High-Performance Gaming Mouse",
+      "price": 79.99,
+      "stock": 49,
+      "category": "Peripherals"
     }
   ],
   "totalPages": 1,
@@ -280,7 +337,13 @@ Retrieves the current user's basket contents.
 ```json
 {
   "items": [
-    { "itemId": 789, "productId": "101", "name": "Wireless Mechanical Keyboard", "quantity": 1, "price": 129.99 }
+    {
+      "itemId": 789,
+      "productId": "101",
+      "name": "Wireless Mechanical Keyboard",
+      "quantity": 1,
+      "price": 129.99
+    }
   ],
   "totalPrice": 129.99
 }
@@ -312,7 +375,12 @@ Gets a paginated list of the current user's past orders.
 ```json
 {
   "content": [
-    { "orderId": "902", "status": "PROCESSING", "totalPrice": 129.99, "createdAt": "2025-07-17T20:16:00Z" }
+    {
+      "orderId": "902",
+      "status": "PROCESSING",
+      "totalPrice": 129.99,
+      "createdAt": "2025-07-17T20:16:00Z"
+    }
   ],
   "totalPages": 1,
   "totalElements": 1
@@ -332,7 +400,12 @@ Gets the details of a single past order.
   "status": "PROCESSING",
   "totalPrice": 129.99,
   "items": [
-    { "productId": "101", "name": "Wireless Mechanical Keyboard", "quantity": 1, "price": 129.99 }
+    {
+      "productId": "101",
+      "name": "Wireless Mechanical Keyboard",
+      "quantity": 1,
+      "price": 129.99
+    }
   ]
 }
 ```
@@ -350,12 +423,30 @@ Gets a receipt for a specific order, including all purchased items, deals applie
   "orderId": "902",
   "purchasedAt": "2025-07-17T20:16:00Z",
   "items": [
-    { "productId": "101", "name": "Wireless Mechanical Keyboard", "quantity": 1, "unitPrice": 129.99, "total": 129.99 },
-    { "productId": "102", "name": "High-Performance Gaming Mouse", "quantity": 2, "unitPrice": 79.99, "total": 159.98 }
+    {
+      "productId": "101",
+      "name": "Wireless Mechanical Keyboard",
+      "quantity": 1,
+      "unitPrice": 129.99,
+      "total": 129.99
+    },
+    {
+      "productId": "102",
+      "name": "High-Performance Gaming Mouse",
+      "quantity": 2,
+      "unitPrice": 79.99,
+      "total": 159.98
+    }
   ],
   "dealsApplied": [
-    { "description": "Buy 2 Get 1 Free", "discount": 79.99 },
-    { "description": "10% Off Sitewide", "discount": 28.00 }
+    {
+      "description": "Buy 2 Get 1 Free",
+      "discount": 79.99
+    },
+    {
+      "description": "10% Off Sitewide",
+      "discount": 28.00
+    }
   ],
   "subtotal": 289.97,
   "totalDiscount": 107.99,

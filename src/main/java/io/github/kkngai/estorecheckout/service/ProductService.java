@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,8 +45,8 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
-    public Product saveProduct(Product product) {
-        return productRepository.save(product);
+    public List<Product> saveAllProducts(List<Product> products) {
+        return productRepository.saveAll(products);
     }
 
     public Product updateProduct(Long id, Product productDetails) {
