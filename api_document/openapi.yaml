@@ -68,7 +68,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductPage'
+                $ref: '#/components/schemas/UnifiedResponseOfCustomPageProduct'
   /api/products/{id}:
     get:
       summary: Get a product by ID
@@ -87,7 +87,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/UnifiedResponseOfProduct'
         '404':
           description: Product not found
   /api/orders:
@@ -100,7 +100,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/UnifiedResponseOfOrder'
     get:
       summary: Get all orders for the current user
       operationId: getUserOrders
@@ -135,7 +135,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderPage'
+                $ref: '#/components/schemas/UnifiedResponseOfCustomPageOrder'
   /api/orders/{orderId}:
     get:
       summary: Get an order by ID
@@ -154,7 +154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/UnifiedResponseOfOrder'
         '404':
           description: Order not found
   /api/orders/{orderId}/receipt:
@@ -175,7 +175,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/UnifiedResponseOfOrder'
         '404':
           description: Order not found
   /api/basket/items:
@@ -192,9 +192,9 @@ paths:
         '200':
           description: Item added to basket successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/UnifiedResponseOfString'
   /api/basket/items/{itemId}:
     delete:
       summary: Remove an item from the user's basket
@@ -211,9 +211,9 @@ paths:
         '200':
           description: Item removed from basket successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/UnifiedResponseOfString'
   /api/basket:
     get:
       summary: Get the user's basket
@@ -224,7 +224,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Basket'
+                $ref: '#/components/schemas/UnifiedResponseOfBasket'
   /api/admin/discounts:
     post:
       summary: Create new discounts
@@ -243,9 +243,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Discount'
+                $ref: '#/components/schemas/UnifiedResponseOfListOfDiscount'
   /api/admin/discounts/{discountId}:
     put:
       summary: Update an existing discount
@@ -270,7 +268,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Discount'
+                $ref: '#/components/schemas/UnifiedResponseOfDiscount'
         '404':
           description: Discount not found
   /api/admin/orders:
@@ -308,7 +306,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderPage'
+                $ref: '#/components/schemas/UnifiedResponseOfCustomPageOrder'
   /api/admin/products:
     post:
       summary: Create new products
@@ -327,9 +325,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/UnifiedResponseOfListOfProduct'
     get:
       summary: Get all products (admin)
       operationId: getAllProductsAdmin
@@ -364,7 +360,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductPage'
+                $ref: '#/components/schemas/UnifiedResponseOfCustomPageProduct'
   /api/admin/products/{id}:
     put:
       summary: Update an existing product
@@ -389,7 +385,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/UnifiedResponseOfProduct'
         '404':
           description: Product not found
     delete:
@@ -406,6 +402,10 @@ paths:
       responses:
         '200':
           description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnifiedResponseOfVoid'
         '404':
           description: Product not found
 components:
@@ -431,68 +431,25 @@ components:
         category:
           type: string
           example: Electronics
-    ProductPage:
+    CustomPageProduct:
       type: object
       properties:
         content:
           type: array
           items:
             $ref: '#/components/schemas/Product'
-        pageable:
-          type: object
-          properties:
-            sort:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                sorted:
-                  type: boolean
-                unsorted:
-                  type: boolean
-            offset:
-              type: integer
-              format: int64
-            pageNumber:
-              type: integer
-              format: int32
-            pageSize:
-              type: integer
-              format: int32
-            paged:
-              type: boolean
-            unpaged:
-              type: boolean
-        last:
-          type: boolean
-        totalPages:
-          type: integer
-          format: int32
         totalElements:
           type: integer
           format: int64
+        totalPages:
+          type: integer
+          format: int32
         size:
           type: integer
           format: int32
         number:
           type: integer
           format: int32
-        sort:
-          type: object
-          properties:
-            empty:
-              type: boolean
-            sorted:
-              type: boolean
-            unsorted:
-              type: boolean
-        first:
-          type: boolean
-        numberOfElements:
-          type: integer
-          format: int32
-        empty:
-          type: boolean
     Order:
       type: object
       properties:
@@ -538,68 +495,25 @@ components:
           type: number
           format: float
           example: 75.37
-    OrderPage:
+    CustomPageOrder:
       type: object
       properties:
         content:
           type: array
           items:
             $ref: '#/components/schemas/Order'
-        pageable:
-          type: object
-          properties:
-            sort:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                sorted:
-                  type: boolean
-                unsorted:
-                  type: boolean
-            offset:
-              type: integer
-              format: int64
-            pageNumber:
-              type: integer
-              format: int32
-            pageSize:
-              type: integer
-              format: int32
-            paged:
-              type: boolean
-            unpaged:
-              type: boolean
-        last:
-          type: boolean
-        totalPages:
-          type: integer
-          format: int32
         totalElements:
           type: integer
           format: int64
+        totalPages:
+          type: integer
+          format: int32
         size:
           type: integer
           format: int32
         number:
           type: integer
           format: int32
-        sort:
-          type: object
-          properties:
-            empty:
-              type: boolean
-            sorted:
-              type: boolean
-            unsorted:
-              type: boolean
-        first:
-          type: boolean
-        numberOfElements:
-          type: integer
-          format: int32
-        empty:
-          type: boolean
     BasketItemRequest:
       type: object
       properties:
@@ -727,3 +641,89 @@ components:
         - price
         - stock
         - category
+    UnifiedResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "0"
+        message:
+          type: string
+          example: "Success"
+        success:
+          type: boolean
+          example: true
+    UnifiedResponseOfProduct:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Product'
+    UnifiedResponseOfCustomPageProduct:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CustomPageProduct'
+    UnifiedResponseOfOrder:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Order'
+    UnifiedResponseOfCustomPageOrder:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CustomPageOrder'
+    UnifiedResponseOfBasket:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Basket'
+    UnifiedResponseOfDiscount:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Discount'
+    UnifiedResponseOfListOfDiscount:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Discount'
+    UnifiedResponseOfListOfProduct:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+    UnifiedResponseOfString:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              type: string
+    UnifiedResponseOfVoid:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              nullable: true

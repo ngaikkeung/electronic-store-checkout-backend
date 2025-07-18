@@ -2,10 +2,10 @@ package io.github.kkngai.estorecheckout.controller;
 
 import io.github.kkngai.estorecheckout.model.Order;
 import io.github.kkngai.estorecheckout.model.response.CustomPage;
+import io.github.kkngai.estorecheckout.model.response.UnifiedResponse;
 import io.github.kkngai.estorecheckout.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,25 +22,25 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder() {
+    public UnifiedResponse<Order> createOrder() {
         Order order = orderService.createOrderFromBasket(getCurrentUserId());
-        return ResponseEntity.ok(order);
+        return UnifiedResponse.success(order);
     }
 
     @GetMapping
-    public ResponseEntity<CustomPage<Order>> getUserOrders(Pageable pageable) {
-        return ResponseEntity.ok(orderService.getUserOrders(getCurrentUserId(), pageable));
+    public UnifiedResponse<CustomPage<Order>> getUserOrders(Pageable pageable) {
+        return UnifiedResponse.success(orderService.getUserOrders(getCurrentUserId(), pageable));
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long orderId) {
+    public UnifiedResponse<Order> getOrderById(@PathVariable Long orderId) {
         return orderService.getOrderById(orderId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(UnifiedResponse::success)
+                .orElse(UnifiedResponse.error("404", "Order not found"));
     }
 
     @GetMapping("/{orderId}/receipt")
-    public ResponseEntity<Order> getOrderReceipt(@PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.getOrderReceipt(orderId));
+    public UnifiedResponse<Order> getOrderReceipt(@PathVariable Long orderId) {
+        return UnifiedResponse.success(orderService.getOrderReceipt(orderId));
     }
 }
