@@ -244,6 +244,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UnifiedResponseOfListOfDiscount'
+    get:
+      summary: Get all discounts
+      operationId: getAllDiscounts
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: sort
+          in: query
+          description: Sorting criteria in the format 'property,(asc|desc)'. Default sort order is ascending. Multiple sort criteria are supported.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: A paged list of discounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnifiedResponseOfCustomPageDiscount'
   /api/admin/discounts/{discountId}:
     put:
       summary: Update an existing discount
@@ -646,6 +681,12 @@ components:
           example: "Summer Sale Discount"
         discountType:
           type: string
+          enum:
+            - PERCENTAGE
+            - BOGO_DEAL
+            - FIXED_AMOUNT_OFF
+            - SPEND_THRESHOLD
+            - BUNDLE_PRICE
           example: "PERCENTAGE"
         rules:
           type: string
@@ -767,3 +808,29 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/CustomPageProduct'
+    UnifiedResponseOfCustomPageDiscount:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CustomPageDiscount'
+    CustomPageDiscount:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Discount'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32

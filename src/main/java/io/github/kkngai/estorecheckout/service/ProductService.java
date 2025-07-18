@@ -48,8 +48,7 @@ public class ProductService {
     }
 
     public CustomPage<Product> getAllProducts(Pageable pageable) {
-        Page<Product> page = productRepository.findAll(pageable);
-        return new CustomPage<>(page.getContent(), page.getTotalElements(), page.getTotalPages(), page.getSize(), page.getNumber());
+        return new CustomPage<>(productRepository.findAll(pageable));
     }
 
     public Optional<ProductResponse> getProductDtoById(Long id) {
