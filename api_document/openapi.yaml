@@ -236,7 +236,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/Discount'
+                $ref: '#/components/schemas/DiscountCreateRequest'
       responses:
         '200':
           description: Discounts created successfully
@@ -320,7 +320,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/ProductCreateRequest'
       responses:
         '200':
           description: Products created successfully
@@ -404,7 +404,7 @@ paths:
             type: integer
             format: int64
       responses:
-        '204':
+        '200':
           description: Product deleted successfully
         '404':
           description: Product not found
@@ -681,3 +681,49 @@ components:
         active:
           type: boolean
           example: true
+    DiscountCreateRequest:
+      type: object
+      properties:
+        productId:
+          type: integer
+          format: int64
+          example: 1
+        description:
+          type: string
+          example: "Summer Sale Discount"
+        discountType:
+          type: string
+          example: "PERCENTAGE"
+        rules:
+          type: string
+          example: "{ \"minItems\": 2, \"minAmount\": 50 }"
+        expirationDate:
+          type: string
+          format: date-time
+          example: "2023-12-31T23:59:59Z"
+          nullable: true
+      required:
+        - description
+        - discountType
+    ProductCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: New Laptop
+        price:
+          type: number
+          format: float
+          example: 1500.00
+        stock:
+          type: integer
+          format: int32
+          example: 100
+        category:
+          type: string
+          example: Electronics
+      required:
+        - name
+        - price
+        - stock
+        - category

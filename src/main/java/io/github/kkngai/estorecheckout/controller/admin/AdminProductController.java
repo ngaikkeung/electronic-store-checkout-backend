@@ -1,6 +1,7 @@
 package io.github.kkngai.estorecheckout.controller.admin;
 
 import io.github.kkngai.estorecheckout.model.Product;
+import io.github.kkngai.estorecheckout.model.request.ProductCreateRequest;
 import io.github.kkngai.estorecheckout.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,8 +19,8 @@ public class AdminProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<List<Product>> createProducts(@RequestBody List<Product> products) {
-        return ResponseEntity.ok(productService.saveAllProducts(products));
+    public ResponseEntity<List<Product>> createProducts(@RequestBody List<ProductCreateRequest> productCreateRequests) {
+        return ResponseEntity.ok(productService.createProducts(productCreateRequests));
     }
 
     @GetMapping
@@ -35,6 +36,6 @@ public class AdminProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

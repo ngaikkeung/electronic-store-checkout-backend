@@ -1,6 +1,7 @@
 package io.github.kkngai.estorecheckout.service;
 
 import io.github.kkngai.estorecheckout.model.Product;
+import io.github.kkngai.estorecheckout.model.request.ProductCreateRequest;
 import io.github.kkngai.estorecheckout.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +47,17 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
-    public List<Product> saveAllProducts(List<Product> products) {
+    public List<Product> createProducts(List<ProductCreateRequest> productCreateRequests) {
+        List<Product> products = productCreateRequests.stream()
+                .map(request -> {
+                    Product product = new Product();
+                    product.setName(request.getName());
+                    product.setPrice(request.getPrice());
+                    product.setStock(request.getStock());
+                    product.setCategory(request.getCategory());
+                    return product;
+                })
+                .collect(Collectors.toList());
         return productRepository.saveAll(products);
     }
 
