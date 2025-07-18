@@ -1,0 +1,23 @@
+meta {
+  name: Create new products
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/api/admin/products
+  body: json
+  auth: none
+}
+
+body:json {
+  [
+    {
+      "productId": 0,
+      "name": "",
+      "price": "",
+      "stock": 0,
+      "category": ""
+    }
+  ]
+}

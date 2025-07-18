@@ -1,61 +1,378 @@
 openapi: 3.0.0
 info:
-  title: Product API
+  title: Electronic Store Checkout API
   version: 1.0.0
+  description: Combined API documentation for the Electronic Store Checkout Backend
 servers:
   - url: http://localhost:8080
+    description: Local Development Server
 paths:
   /api/products:
     get:
       summary: Get all products
+      operationId: getAllProducts
+      parameters:
+        - name: category
+          in: query
+          description: Filter by product category
+          required: false
+          schema:
+            type: string
+        - name: priceMin
+          in: query
+          description: Minimum price for filtering
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: priceMax
+          in: query
+          description: Maximum price for filtering
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: inStock
+          in: query
+          description: Filter by in-stock status
+          required: false
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: sort
+          in: query
+          description: Sorting criteria in the format 'property,(asc|desc)'. Default sort order is ascending. Multiple sort criteria are supported.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
-          description: A list of products
+          description: A paged list of products
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
-    post:
-      summary: Create a new product
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Product'
-      responses:
-        '200':
-          description: The created product
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/ProductPage'
   /api/products/{id}:
     get:
       summary: Get a product by ID
+      operationId: getProductById
       parameters:
         - name: id
           in: path
+          description: ID of the product to retrieve
           required: true
           schema:
             type: integer
             format: int64
       responses:
         '200':
-          description: The product
+          description: Product found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Product'
         '404':
           description: Product not found
+  /api/orders:
+    post:
+      summary: Create a new order from the user's basket
+      operationId: createOrder
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+    get:
+      summary: Get all orders for the current user
+      operationId: getUserOrders
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: sort
+          in: query
+          description: Sorting criteria in the format 'property,(asc|desc)'. Default sort order is ascending. Multiple sort criteria are supported.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: A paged list of user orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPage'
+  /api/orders/{orderId}:
+    get:
+      summary: Get an order by ID
+      operationId: getOrderById
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the order to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order not found
+  /api/orders/{orderId}/receipt:
+    get:
+      summary: Get the receipt for an order
+      operationId: getOrderReceipt
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the order to retrieve the receipt for
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order receipt found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order not found
+  /api/basket/items:
+    post:
+      summary: Add a product to the user's basket
+      operationId: addProductToBasket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BasketItemRequest'
+      responses:
+        '200':
+          description: Item added to basket successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/basket/items/{itemId}:
+    delete:
+      summary: Remove an item from the user's basket
+      operationId: removeBasketItem
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of the basket item to remove
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Item removed from basket successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/basket:
+    get:
+      summary: Get the user's basket
+      operationId: getBasket
+      responses:
+        '200':
+          description: User basket retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Basket'
+  /api/admin/discounts:
+    post:
+      summary: Create new discounts
+      operationId: createDiscounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Discount'
+      responses:
+        '200':
+          description: Discounts created successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Discount'
+  /api/admin/discounts/{discountId}:
     put:
-      summary: Update a product
+      summary: Update an existing discount
+      operationId: updateDiscount
+      parameters:
+        - name: discountId
+          in: path
+          description: ID of the discount to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Discount'
+      responses:
+        '200':
+          description: Discount updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discount'
+        '404':
+          description: Discount not found
+  /api/admin/orders:
+    get:
+      summary: Get all orders
+      operationId: getAllOrders
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: sort
+          in: query
+          description: Sorting criteria in the format 'property,(asc|desc)'. Default sort order is ascending. Multiple sort criteria are supported.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: A paged list of orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPage'
+  /api/admin/products:
+    post:
+      summary: Create new products
+      operationId: createProducts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: Products created successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    get:
+      summary: Get all products (admin)
+      operationId: getAllProductsAdmin
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: sort
+          in: query
+          description: Sorting criteria in the format 'property,(asc|desc)'. Default sort order is ascending. Multiple sort criteria are supported.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: A paged list of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+  /api/admin/products/{id}:
+    put:
+      summary: Update an existing product
+      operationId: updateProduct
       parameters:
         - name: id
           in: path
+          description: ID of the product to update
           required: true
           schema:
             type: integer
@@ -68,16 +385,20 @@ paths:
               $ref: '#/components/schemas/Product'
       responses:
         '200':
-          description: The updated product
+          description: Product updated successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
     delete:
       summary: Delete a product
+      operationId: deleteProduct
       parameters:
         - name: id
           in: path
+          description: ID of the product to delete
           required: true
           schema:
             type: integer
@@ -85,6 +406,8 @@ paths:
       responses:
         '204':
           description: Product deleted successfully
+        '404':
+          description: Product not found
 components:
   schemas:
     Product:
@@ -93,12 +416,268 @@ components:
         productId:
           type: integer
           format: int64
+          example: 1
         name:
           type: string
+          example: Laptop
         price:
           type: number
-          format: double
+          format: float
+          example: 1200.00
         stock:
           type: integer
+          format: int32
+          example: 50
         category:
           type: string
+          example: Electronics
+    ProductPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        pageable:
+          type: object
+          properties:
+            sort:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+            offset:
+              type: integer
+              format: int64
+            pageNumber:
+              type: integer
+              format: int32
+            pageSize:
+              type: integer
+              format: int32
+            paged:
+              type: boolean
+            unpaged:
+              type: boolean
+        last:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        sort:
+          type: object
+          properties:
+            empty:
+              type: boolean
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+        first:
+          type: boolean
+        numberOfElements:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          example: 1
+        userId:
+          type: integer
+          format: int64
+          example: 1
+        orderDate:
+          type: string
+          format: date-time
+          example: "2023-01-01T12:00:00Z"
+        totalAmount:
+          type: number
+          format: float
+          example: 150.75
+        status:
+          type: string
+          example: COMPLETED
+        orderItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    OrderItem:
+      type: object
+      properties:
+        orderItemId:
+          type: integer
+          format: int64
+          example: 1
+        productId:
+          type: integer
+          format: int64
+          example: 101
+        quantity:
+          type: integer
+          format: int32
+          example: 2
+        priceAtPurchase:
+          type: number
+          format: float
+          example: 75.37
+    OrderPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+        pageable:
+          type: object
+          properties:
+            sort:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+            offset:
+              type: integer
+              format: int64
+            pageNumber:
+              type: integer
+              format: int32
+            pageSize:
+              type: integer
+              format: int32
+            paged:
+              type: boolean
+            unpaged:
+              type: boolean
+        last:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        sort:
+          type: object
+          properties:
+            empty:
+              type: boolean
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+        first:
+          type: boolean
+        numberOfElements:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+    BasketItemRequest:
+      type: object
+      properties:
+        productId:
+          type: integer
+          format: int64
+          example: 101
+        quantity:
+          type: integer
+          format: int32
+          example: 1
+      required:
+        - productId
+        - quantity
+    Basket:
+      type: object
+      properties:
+        basketId:
+          type: integer
+          format: int64
+          example: 1
+        userId:
+          type: integer
+          format: int64
+          example: 1
+        basketItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasketItem'
+        totalItems:
+          type: integer
+          format: int32
+          example: 2
+        totalPrice:
+          type: number
+          format: float
+          example: 150.75
+    BasketItem:
+      type: object
+      properties:
+        basketItemId:
+          type: integer
+          format: int64
+          example: 1
+        productId:
+          type: integer
+          format: int64
+          example: 101
+        quantity:
+          type: integer
+          format: int32
+          example: 1
+        price:
+          type: number
+          format: float
+          example: 75.37
+    Discount:
+      type: object
+      properties:
+        discountId:
+          type: integer
+          format: int64
+          example: 1
+        code:
+          type: string
+          example: SUMMER20
+        percentage:
+          type: number
+          format: float
+          example: 0.20
+        startDate:
+          type: string
+          format: date-time
+          example: "2023-07-01T00:00:00Z"
+        endDate:
+          type: string
+          format: date-time
+          example: "2023-07-31T23:59:59Z"
+        active:
+          type: boolean
+          example: true

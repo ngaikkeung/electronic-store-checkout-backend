@@ -1,0 +1,17 @@
+meta {
+  name: Get all products (admin)
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/api/admin/products
+  body: none
+  auth: none
+}
+
+params:query {
+  ~page: 
+  ~size: 
+  ~sort: 
+}

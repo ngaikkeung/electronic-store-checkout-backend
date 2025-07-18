@@ -1,0 +1,15 @@
+meta {
+  name: Remove an item from the user's basket
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/api/basket/items/:itemId
+  body: none
+  auth: none
+}
+
+params:path {
+  itemId: 
+}
