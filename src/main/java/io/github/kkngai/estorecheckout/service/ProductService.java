@@ -29,15 +29,10 @@ public class ProductService {
     public Product updateProduct(Long id, Product productDetails) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
-        
         product.setName(productDetails.getName());
-        product.setDescription(productDetails.getDescription());
         product.setPrice(productDetails.getPrice());
-        product.setStockQuantity(productDetails.getStockQuantity());
+        product.setStock(productDetails.getStock());
         product.setCategory(productDetails.getCategory());
-        product.setSku(productDetails.getSku());
-        product.setImageUrl(productDetails.getImageUrl());
-        
         return productRepository.save(product);
     }
 
@@ -49,15 +44,11 @@ public class ProductService {
         return productRepository.findByCategory(category);
     }
 
-    public Optional<Product> getProductBySku(String sku) {
-        return productRepository.findBySku(sku);
-    }
-
     public List<Product> searchProductsByName(String name) {
         return productRepository.findByNameContainingIgnoreCase(name);
     }
 
     public List<Product> getAvailableProducts() {
-        return productRepository.findByStockQuantityGreaterThan(0);
+        return productRepository.findByStockGreaterThan(0);
     }
 } 
