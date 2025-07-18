@@ -60,4 +60,8 @@ test-output/
 surefire-reports/
 
 # Others
-node_modules/ 
+node_modules/
+
+# Bruno API Collection
+*.bru
+api_document/*/bruno.json

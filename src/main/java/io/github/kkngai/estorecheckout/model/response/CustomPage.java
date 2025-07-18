@@ -12,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class CustomPage<T> {
     private List<T> content;
-    private int currentPage;
     private long totalElements;
     private int totalPages;
     private int pageSize;
@@ -20,7 +19,6 @@ public class CustomPage<T> {
 
     public CustomPage(Page<T> springPage) {
         this.content = springPage.getContent();
-        this.currentPage = springPage.getNumber();
         this.totalPages = springPage.getTotalPages();
         this.totalElements = springPage.getTotalElements();
         this.pageSize = springPage.getSize();
