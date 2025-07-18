@@ -5,7 +5,7 @@ import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Order;
 import io.github.kkngai.estorecheckout.model.OrderItem;
 import io.github.kkngai.estorecheckout.model.User;
-import io.github.kkngai.estorecheckout.model.response.CustomPage;
+import io.github.kkngai.estorecheckout.dto.CustomPage;
 import io.github.kkngai.estorecheckout.repository.OrderItemRepository;
 import io.github.kkngai.estorecheckout.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;

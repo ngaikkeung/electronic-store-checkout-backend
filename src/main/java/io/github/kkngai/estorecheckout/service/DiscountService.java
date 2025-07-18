@@ -4,7 +4,7 @@ import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Discount;
 import io.github.kkngai.estorecheckout.model.Product;
-import io.github.kkngai.estorecheckout.model.request.DiscountCreateRequest;
+import io.github.kkngai.estorecheckout.dto.request.DiscountCreateRequest;
 import io.github.kkngai.estorecheckout.repository.DiscountRepository;
 import io.github.kkngai.estorecheckout.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,9 +1,9 @@
 package io.github.kkngai.estorecheckout.controller.admin;
 
 import io.github.kkngai.estorecheckout.model.Product;
-import io.github.kkngai.estorecheckout.model.request.ProductCreateRequest;
-import io.github.kkngai.estorecheckout.model.response.CustomPage;
-import io.github.kkngai.estorecheckout.model.response.UnifiedResponse;
+import io.github.kkngai.estorecheckout.dto.request.ProductCreateRequest;
+import io.github.kkngai.estorecheckout.dto.CustomPage;
+import io.github.kkngai.estorecheckout.dto.response.UnifiedResponse;
 import io.github.kkngai.estorecheckout.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;

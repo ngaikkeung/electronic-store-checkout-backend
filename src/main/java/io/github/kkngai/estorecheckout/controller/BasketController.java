@@ -1,8 +1,8 @@
 package io.github.kkngai.estorecheckout.controller;
 
 import io.github.kkngai.estorecheckout.model.Basket;
-import io.github.kkngai.estorecheckout.model.request.BasketItemRequest;
-import io.github.kkngai.estorecheckout.model.response.UnifiedResponse;
+import io.github.kkngai.estorecheckout.dto.request.BasketItemRequest;
+import io.github.kkngai.estorecheckout.dto.response.UnifiedResponse;
 import io.github.kkngai.estorecheckout.service.BasketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

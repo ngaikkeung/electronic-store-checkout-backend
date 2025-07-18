@@ -1,4 +1,4 @@
-package io.github.kkngai.estorecheckout.model.request;
+package io.github.kkngai.estorecheckout.dto.request;
 
 import lombok.Data;
 
