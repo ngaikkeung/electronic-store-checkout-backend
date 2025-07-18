@@ -1,4 +1,4 @@
-package io.github.kkngai.estorecheckout.controller;
+package io.github.kkngai.estorecheckout.controller.admin;
 
 import io.github.kkngai.estorecheckout.model.Product;
 import io.github.kkngai.estorecheckout.service.ProductService;
@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/admin/products")
 @RequiredArgsConstructor
@@ -16,8 +18,8 @@ public class AdminProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        return ResponseEntity.ok(productService.saveProduct(product));
+    public ResponseEntity<List<Product>> createProducts(@RequestBody List<Product> products) {
+        return ResponseEntity.ok(productService.saveAllProducts(products));
     }
 
     @GetMapping
