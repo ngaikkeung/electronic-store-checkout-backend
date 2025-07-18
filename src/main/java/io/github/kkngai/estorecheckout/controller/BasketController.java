@@ -1,13 +1,10 @@
 package io.github.kkngai.estorecheckout.controller;
 
 import io.github.kkngai.estorecheckout.model.Basket;
-import io.github.kkngai.estorecheckout.model.BasketItem;
+import io.github.kkngai.estorecheckout.model.request.BasketItemRequest;
+import io.github.kkngai.estorecheckout.model.response.UnifiedResponse;
 import io.github.kkngai.estorecheckout.service.BasketService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import io.github.kkngai.estorecheckout.model.request.BasketItemRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,20 +22,20 @@ public class BasketController {
     }
 
     @PostMapping("/items")
-    public ResponseEntity<String> addProductToBasket(@RequestBody BasketItemRequest request) {
+    public UnifiedResponse<String> addProductToBasket(@RequestBody BasketItemRequest request) {
         basketService.addProductToBasket(getCurrentUserId(), request.getProductId(), request.getQuantity());
-        return ResponseEntity.ok("Item added to basket successfully");
+        return UnifiedResponse.success("Item added to basket successfully");
     }
 
     @DeleteMapping("/items/{itemId}")
-    public ResponseEntity<String> removeBasketItem(@PathVariable Long itemId) {
+    public UnifiedResponse<String> removeBasketItem(@PathVariable Long itemId) {
         basketService.removeBasketItem(getCurrentUserId(), itemId);
-        return ResponseEntity.ok("Item removed from basket successfully");
+        return UnifiedResponse.success("Item removed from basket successfully");
     }
 
     @GetMapping
-    public ResponseEntity<Basket> getBasket() {
+    public UnifiedResponse<Basket> getBasket() {
         Basket basket = basketService.getOrCreateBasket(getCurrentUserId());
-        return ResponseEntity.ok(basket);
+        return UnifiedResponse.success(basket);
     }
 }
