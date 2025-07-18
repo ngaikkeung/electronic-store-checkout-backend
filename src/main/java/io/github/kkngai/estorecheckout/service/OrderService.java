@@ -1,5 +1,7 @@
 package io.github.kkngai.estorecheckout.service;
 
+import io.github.kkngai.estorecheckout.exception.BusinessException;
+import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Order;
 import io.github.kkngai.estorecheckout.model.OrderItem;
 import io.github.kkngai.estorecheckout.model.User;
@@ -13,9 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,13 +34,13 @@ public class OrderService {
     @Transactional
     public Order createOrderFromBasket(Long userId) {
         User user = userService.getUserById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
+                .orElseThrow(() -> new BusinessException(BusinessCode.USER_NOT_FOUND, "User not found"));
+
         // Get the user's basket
         var basket = basketService.getOrCreateBasket(userId);
 
         if (basket.getItems().isEmpty()) {
-            throw new RuntimeException("Cannot create order from an empty basket");
+            throw new BusinessException(BusinessCode.EMPTY_BASKET, "Cannot create order from an empty basket");
         }
 
         // Create a new order
@@ -70,7 +70,7 @@ public class OrderService {
 
     public CustomPage<Order> getUserOrders(Long userId, Pageable pageable) {
         User user = userService.getUserById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessException(BusinessCode.USER_NOT_FOUND, "User not found"));
         Page<Order> page = orderRepository.findByUser(user, pageable);
         return new CustomPage<>(page);
     }
@@ -82,7 +82,7 @@ public class OrderService {
     // This method would be more complex in a real scenario, involving discount calculations
     public Order getOrderReceipt(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new BusinessException(BusinessCode.ORDER_NOT_FOUND, "Order not found"));
         // In a real application, you would fetch order items, apply discounts, etc.
         // For now, we'll just return the order with its items (if fetched eagerly or through a separate call)
         return order;

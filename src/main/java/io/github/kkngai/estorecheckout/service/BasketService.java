@@ -3,6 +3,8 @@ package io.github.kkngai.estorecheckout.service;
 import io.github.kkngai.estorecheckout.model.Basket;
 import io.github.kkngai.estorecheckout.model.BasketItem;
 import io.github.kkngai.estorecheckout.model.Product;
+import io.github.kkngai.estorecheckout.exception.BusinessException;
+import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.User;
 import io.github.kkngai.estorecheckout.repository.BasketItemRepository;
 import io.github.kkngai.estorecheckout.repository.BasketRepository;
@@ -24,7 +26,7 @@ public class BasketService {
     @Transactional
     public Basket getOrCreateBasket(Long userId) {
         User user = userService.getUserById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessException(BusinessCode.USER_NOT_FOUND, "User not found"));
         return basketRepository.findByUser(user)
                 .orElseGet(() -> {
                     Basket newBasket = new Basket();
@@ -37,7 +39,7 @@ public class BasketService {
     public BasketItem addProductToBasket(Long userId, Long productId, int quantity) {
         Basket basket = getOrCreateBasket(userId);
         Product product = productService.getProductById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found"));
 
         Optional<BasketItem> existingItem = basket.getItems().stream()
                 .filter(item -> item.getProduct().getProductId().equals(productId))
@@ -62,10 +64,10 @@ public class BasketService {
     public void removeBasketItem(Long userId, Long basketItemId) {
         Basket basket = getOrCreateBasket(userId);
         BasketItem itemToRemove = basketItemRepository.findById(basketItemId)
-                .orElseThrow(() -> new RuntimeException("Basket item not found"));
+                .orElseThrow(() -> new BusinessException(BusinessCode.BASKET_ITEM_NOT_FOUND, "Basket item not found"));
 
         if (!itemToRemove.getBasket().getBasketId().equals(basket.getBasketId())) {
-            throw new RuntimeException("Basket item does not belong to the user's basket");
+            throw new BusinessException(BusinessCode.BASKET_ITEM_MISMATCH, "Basket item does not belong to the user's basket");
         }
 
         basket.getItems().remove(itemToRemove);
