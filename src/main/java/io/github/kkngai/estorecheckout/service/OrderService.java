@@ -3,6 +3,7 @@ package io.github.kkngai.estorecheckout.service;
 import io.github.kkngai.estorecheckout.model.Order;
 import io.github.kkngai.estorecheckout.model.OrderItem;
 import io.github.kkngai.estorecheckout.model.User;
+import io.github.kkngai.estorecheckout.model.response.CustomPage;
 import io.github.kkngai.estorecheckout.repository.OrderItemRepository;
 import io.github.kkngai.estorecheckout.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,9 @@ public class OrderService {
     private final BasketService basketService;
     private final UserService userService;
 
-    public Page<Order> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable);
+    public CustomPage<Order> getAllOrders(Pageable pageable) {
+        Page<Order> page = orderRepository.findAll(pageable);
+        return new CustomPage<>(page);
     }
 
     @Transactional
@@ -66,10 +68,11 @@ public class OrderService {
         return order;
     }
 
-    public Page<Order> getUserOrders(Long userId, Pageable pageable) {
+    public CustomPage<Order> getUserOrders(Long userId, Pageable pageable) {
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return orderRepository.findByUser(user, pageable);
+        Page<Order> page = orderRepository.findByUser(user, pageable);
+        return new CustomPage<>(page);
     }
 
     public Optional<Order> getOrderById(Long orderId) {

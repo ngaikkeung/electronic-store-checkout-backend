@@ -1,9 +1,9 @@
 package io.github.kkngai.estorecheckout.controller;
 
 import io.github.kkngai.estorecheckout.model.Order;
+import io.github.kkngai.estorecheckout.model.response.CustomPage;
 import io.github.kkngai.estorecheckout.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +28,7 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Order>> getUserOrders(Pageable pageable) {
+    public ResponseEntity<CustomPage<Order>> getUserOrders(Pageable pageable) {
         return ResponseEntity.ok(orderService.getUserOrders(getCurrentUserId(), pageable));
     }
 
