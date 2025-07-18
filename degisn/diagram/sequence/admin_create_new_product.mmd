@@ -1,24 +1,26 @@
 sequenceDiagram
-    title Admin Creates a New Product
+    title Admin Creates New Products
 
     actor Admin
     participant ProductController
     participant ProductService
     participant Database
 
-    Admin->>ProductController: POST /api/admin/products (productDetails)
+    Admin->>ProductController: POST /api/admin/products (List<ProductCreateRequest>)
     activate ProductController
 
-    ProductController->>ProductService: createProduct(productDetails)
+    ProductController->>ProductService: createProducts(List<ProductCreateRequest>)
     activate ProductService
 
-    ProductService->>Database: Save New Product
-    activate Database
-    Database-->>ProductService: Return Saved Product w/ ID
-    deactivate Database
+    loop for each ProductCreateRequest in the list
+        ProductService->>Database: Save New Product
+        activate Database
+        Database-->>ProductService: Return Saved Product w/ ID
+        deactivate Database
+    end
 
-    ProductService-->>ProductController: Return Created Product
+    ProductService-->>ProductController: Return List of Created Products
     deactivate ProductService
 
-    ProductController-->>Admin: 201 Created Response
+    ProductController-->>Admin: 200 OK Response (List<Product>)
     deactivate ProductController

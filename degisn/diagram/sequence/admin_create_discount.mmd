@@ -1,34 +1,31 @@
 sequenceDiagram
-    title Admin Creates a New Discount Deal
+    title Admin Creates New Discounts
 
     actor Admin
     participant DiscountController
     participant DiscountService
     participant Database
 
-    Admin->>DiscountController: POST /api/admin/discounts (discountDetails, productId)
+    Admin->>DiscountController: POST /api/admin/discounts (List<DiscountCreateRequest>)
     activate DiscountController
 
-    DiscountController->>DiscountService: createDiscountForProduct(discountDetails, productId)
+    DiscountController->>DiscountService: createDiscounts(List<DiscountCreateRequest>)
     activate DiscountService
 
-    DiscountService->>Database: Find Product by productId
-    activate Database
-    Database-->>DiscountService: Return Product
-    deactivate Database
+    loop for each DiscountCreateRequest in the list
+        DiscountService->>Database: Find Product by productId (if present)
+        activate Database
+        Database-->>DiscountService: Return Product (or null)
+        deactivate Database
 
-    DiscountService->>Database: Save New Discount
-    activate Database
-    Database-->>DiscountService: Return Saved Discount w/ ID
-    deactivate Database
+        DiscountService->>Database: Save New Discount
+        activate Database
+        Database-->>DiscountService: Return Saved Discount w/ ID
+        deactivate Database
+    end
 
-    DiscountService->>Database: Link Discount to Product
-    activate Database
-    Database-->>DiscountService: Link Confirmation
-    deactivate Database
-
-    DiscountService-->>DiscountController: Return Success Confirmation
+    DiscountService-->>DiscountController: Return List of Saved Discounts
     deactivate DiscountService
 
-    DiscountController-->>Admin: 201 Created Response
+    DiscountController-->>Admin: 200 OK Response (List<Discount>)
     deactivate DiscountController
