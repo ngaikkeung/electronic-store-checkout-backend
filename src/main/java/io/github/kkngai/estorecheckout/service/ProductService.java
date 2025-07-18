@@ -3,9 +3,12 @@ package io.github.kkngai.estorecheckout.service;
 import io.github.kkngai.estorecheckout.model.Product;
 import io.github.kkngai.estorecheckout.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -14,8 +17,27 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public Page<Product> getAllProducts(String category, BigDecimal priceMin, BigDecimal priceMax, Boolean inStock, Pageable pageable) {
+        Specification<Product> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+
+        if (category != null && !category.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("category"), category));
+        }
+        if (priceMin != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("price"), priceMin));
+        }
+        if (priceMax != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("price"), priceMax));
+        }
+        if (inStock != null && inStock) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("stock"), 0));
+        }
+
+        return productRepository.findAll(spec, pageable);
+    }
+
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
 
     public Optional<Product> getProductById(Long id) {
@@ -38,17 +60,5 @@ public class ProductService {
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
-    }
-
-    public List<Product> getProductsByCategory(String category) {
-        return productRepository.findByCategory(category);
-    }
-
-    public List<Product> searchProductsByName(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
-    }
-
-    public List<Product> getAvailableProducts() {
-        return productRepository.findByStockGreaterThan(0);
     }
 } 
