@@ -1,0 +1,18 @@
+meta {
+  name: Add a product to the user's basket
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/basket/items
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "productId": 0,
+    "quantity": 0
+  }
+}
