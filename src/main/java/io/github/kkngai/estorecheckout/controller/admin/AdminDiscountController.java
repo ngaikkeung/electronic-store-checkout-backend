@@ -1,6 +1,7 @@
 package io.github.kkngai.estorecheckout.controller.admin;
 
 import io.github.kkngai.estorecheckout.model.Discount;
+import io.github.kkngai.estorecheckout.model.request.DiscountCreateRequest;
 import io.github.kkngai.estorecheckout.service.DiscountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,8 @@ public class AdminDiscountController {
     private final DiscountService discountService;
 
     @PostMapping
-    public ResponseEntity<List<Discount>> createDiscounts(@RequestBody List<Discount> discounts) {
-        return ResponseEntity.ok(discountService.saveAllDiscounts(discounts));
+    public ResponseEntity<List<Discount>> createDiscounts(@RequestBody List<DiscountCreateRequest> discountCreateRequests) {
+        return ResponseEntity.ok(discountService.createDiscounts(discountCreateRequests));
     }
 
     @PutMapping("/{discountId}")

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,7 +19,7 @@ public class Discount {
     private Long discountId;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "product_id", nullable = true)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private Product product;
 
     @Column(nullable = false)
@@ -30,6 +31,6 @@ public class Discount {
     @Column(columnDefinition = "TEXT")
     private String rules; // Store JSON as String
 
-    @Column(name = "expiration_date", nullable = false)
+    @Column(name = "expiration_date")
     private LocalDateTime expirationDate;
 } 

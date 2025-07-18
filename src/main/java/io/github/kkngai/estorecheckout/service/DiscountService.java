@@ -1,23 +1,43 @@
 package io.github.kkngai.estorecheckout.service;
 
 import io.github.kkngai.estorecheckout.model.Discount;
+import io.github.kkngai.estorecheckout.model.Product;
+import io.github.kkngai.estorecheckout.model.request.DiscountCreateRequest;
 import io.github.kkngai.estorecheckout.repository.DiscountRepository;
+import io.github.kkngai.estorecheckout.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DiscountService {
 
     private final DiscountRepository discountRepository;
+    private final ProductRepository productRepository;
 
     public Discount saveDiscount(Discount discount) {
         return discountRepository.save(discount);
     }
 
-    public List<Discount> saveAllDiscounts(List<Discount> discounts) {
+    public List<Discount> createDiscounts(List<DiscountCreateRequest> discountCreateRequests) {
+        List<Discount> discounts = discountCreateRequests.stream()
+                .map(request -> {
+                    Discount discount = new Discount();
+                    if (request.getProductId() != null) {
+                        Product product = productRepository.findById(request.getProductId())
+                                .orElseThrow(() -> new RuntimeException("Product not found with id: " + request.getProductId()));
+                        discount.setProduct(product);
+                    }
+                    discount.setDescription(request.getDescription());
+                    discount.setDiscountType(request.getDiscountType());
+                    discount.setRules(request.getRules());
+                    discount.setExpirationDate(request.getExpirationDate());
+                    return discount;
+                })
+                .collect(Collectors.toList());
         return discountRepository.saveAll(discounts);
     }
 
