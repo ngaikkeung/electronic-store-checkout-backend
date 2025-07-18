@@ -1,5 +1,6 @@
 package io.github.kkngai.estorecheckout.model.response;
 
+import io.github.kkngai.estorecheckout.model.BusinessCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,15 +15,15 @@ public class UnifiedResponse<T> {
     private boolean success;
 
     public static <T> UnifiedResponse<T> success() {
-        return new UnifiedResponse<>(ResponseCode.SUCCESS.getCode(), null, null, true);
+        return new UnifiedResponse<>(BusinessCode.SUCCESS.getCode(), null, null, true);
     }
 
     public static <T> UnifiedResponse<T> success(T data) {
-        return new UnifiedResponse<>(ResponseCode.SUCCESS.getCode(), null, data, true);
+        return new UnifiedResponse<>(BusinessCode.SUCCESS.getCode(), null, data, true);
     }
 
     public static <T> UnifiedResponse<T> error(String message) {
-        return new UnifiedResponse<>(ResponseCode.SYSTEM_ERROR.getCode(), message, null, false);
+        return new UnifiedResponse<>(BusinessCode.SYSTEM_ERROR.getCode(), message, null, false);
     }
 
     public static <T> UnifiedResponse<T> error(String code, String message) {

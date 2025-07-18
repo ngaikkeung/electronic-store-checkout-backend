@@ -1,5 +1,7 @@
 package io.github.kkngai.estorecheckout.service;
 
+import io.github.kkngai.estorecheckout.exception.BusinessException;
+import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Discount;
 import io.github.kkngai.estorecheckout.model.Product;
 import io.github.kkngai.estorecheckout.model.request.DiscountCreateRequest;
@@ -28,7 +30,7 @@ public class DiscountService {
                     Discount discount = new Discount();
                     if (request.getProductId() != null) {
                         Product product = productRepository.findById(request.getProductId())
-                                .orElseThrow(() -> new RuntimeException("Product not found with id: " + request.getProductId()));
+                                .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found with id: " + request.getProductId()));
                         discount.setProduct(product);
                     }
                     discount.setDescription(request.getDescription());
@@ -43,7 +45,7 @@ public class DiscountService {
 
     public Discount updateDiscount(Long discountId, Discount discountDetails) {
         Discount discount = discountRepository.findById(discountId)
-                .orElseThrow(() -> new RuntimeException("Discount not found with id: " + discountId));
+                .orElseThrow(() -> new BusinessException(BusinessCode.DISCOUNT_NOT_FOUND, "Discount not found with id: " + discountId));
         discount.setProduct(discountDetails.getProduct());
         discount.setDescription(discountDetails.getDescription());
         discount.setDiscountType(discountDetails.getDiscountType());

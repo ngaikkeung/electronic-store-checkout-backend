@@ -1,5 +1,7 @@
 package io.github.kkngai.estorecheckout.service;
 
+import io.github.kkngai.estorecheckout.exception.BusinessException;
+import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Product;
 import io.github.kkngai.estorecheckout.model.request.ProductCreateRequest;
 import io.github.kkngai.estorecheckout.model.response.CustomPage;
@@ -63,7 +65,7 @@ public class ProductService {
 
     public Product updateProduct(Long id, Product productDetails) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found with id: " + id));
         product.setName(productDetails.getName());
         product.setPrice(productDetails.getPrice());
         product.setStock(productDetails.getStock());
