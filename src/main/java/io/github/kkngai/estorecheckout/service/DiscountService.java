@@ -1,13 +1,15 @@
 package io.github.kkngai.estorecheckout.service;
 
+import io.github.kkngai.estorecheckout.dto.CustomPage;
+import io.github.kkngai.estorecheckout.dto.request.DiscountCreateRequest;
 import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Discount;
 import io.github.kkngai.estorecheckout.model.Product;
-import io.github.kkngai.estorecheckout.dto.request.DiscountCreateRequest;
 import io.github.kkngai.estorecheckout.repository.DiscountRepository;
 import io.github.kkngai.estorecheckout.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,5 +54,9 @@ public class DiscountService {
         discount.setRules(discountDetails.getRules());
         discount.setExpirationDate(discountDetails.getExpirationDate());
         return discountRepository.save(discount);
+    }
+
+    public CustomPage<Discount> getAllDiscounts(Pageable pageable) {
+        return new CustomPage<>(discountRepository.findAll(pageable));
     }
 }
