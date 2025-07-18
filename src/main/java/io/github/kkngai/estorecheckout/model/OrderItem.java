@@ -22,7 +22,7 @@ public class OrderItem {
     private Order order;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "product_id", referencedColumnName = "id")
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private Product product;
 
     @Column(nullable = false)
