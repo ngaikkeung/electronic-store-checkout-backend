@@ -1,8 +1,9 @@
 package io.github.kkngai.estorecheckout.controller;
 
-import io.github.kkngai.estorecheckout.model.Basket;
 import io.github.kkngai.estorecheckout.dto.request.BasketItemRequest;
 import io.github.kkngai.estorecheckout.dto.response.UnifiedResponse;
+import io.github.kkngai.estorecheckout.model.Basket;
+import io.github.kkngai.estorecheckout.model.BasketItem;
 import io.github.kkngai.estorecheckout.service.BasketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -22,14 +23,14 @@ public class BasketController {
     }
 
     @PostMapping("/items")
-    public UnifiedResponse<String> addProductToBasket(@RequestBody BasketItemRequest request) {
-        basketService.addProductToBasket(getCurrentUserId(), request.getProductId(), request.getQuantity());
-        return UnifiedResponse.success("Item added to basket successfully");
+    public UnifiedResponse<BasketItem> addProductToBasket(@RequestBody BasketItemRequest request) {
+        return UnifiedResponse.success(basketService.addProductToBasket(getCurrentUserId(), request.getProductId(), request.getQuantity()));
     }
 
     @DeleteMapping("/items/{itemId}")
-    public UnifiedResponse<String> removeBasketItem(@PathVariable Long itemId) {
-        basketService.removeBasketItem(getCurrentUserId(), itemId);
+    public UnifiedResponse<String> removeBasketItem(@PathVariable Long itemId, @RequestParam(required = false) Integer quantity) {
+        int quantityToRemove = (quantity != null) ? quantity : Integer.MAX_VALUE;
+        basketService.removeBasketItem(getCurrentUserId(), itemId, quantityToRemove);
         return UnifiedResponse.success("Item removed from basket successfully");
     }
 

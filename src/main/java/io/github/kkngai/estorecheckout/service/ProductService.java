@@ -56,8 +56,9 @@ public class ProductService {
                 .map(ProductResponse::convertToProductResponse);
     }
 
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
+    public Product getExistingProductById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found with id: " + id));
     }
 
     public List<Product> createProducts(List<ProductCreateRequest> productCreateRequests) {

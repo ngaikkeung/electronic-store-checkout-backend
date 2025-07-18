@@ -48,14 +48,14 @@ public class BasketService {
 
     @Transactional
     public BasketItem addProductToBasket(Long userId, Long productId, int quantity) {
+        log.info("Adding product: {} to basket for user: {}", productId, userId);
         if (!stockService.reserveStock(productId, quantity)) {
             throw new BusinessException(BusinessCode.PRODUCT_OUT_OF_STOCK, "Product with id: " + productId + " is out of stock or requested quantity is not available.");
         }
 
         try {
             Basket basket = getOrCreateBasket(userId);
-            Product product = productService.getProductById(productId)
-                    .orElseThrow(() -> new BusinessException(BusinessCode.PRODUCT_NOT_FOUND, "Product not found"));
+            Product product = productService.getExistingProductById(productId);
 
             Optional<BasketItem> existingItem = basket.getItems().stream()
                     .filter(item -> item.getProduct().getProductId().equals(productId))
@@ -75,6 +75,8 @@ public class BasketService {
 
             basketRepository.save(basket);
             stockService.persistStockUpdate(productId, -quantity);
+            product = productService.getExistingProductById(productId);
+            basketItem.setProduct(product);
             basketRedisTemplate.opsForValue().set(getBasketKey(userId), basket, Duration.ofMinutes(30));
             return basketItem;
         } catch (Exception e) {
@@ -85,7 +87,7 @@ public class BasketService {
     }
 
     @Transactional
-    public void removeBasketItem(Long userId, Long basketItemId) {
+    public void removeBasketItem(Long userId, Long basketItemId, int quantityToRemove) {
         Basket basket = getOrCreateBasket(userId);
         BasketItem itemToRemove = basketItemRepository.findById(basketItemId)
                 .orElseThrow(() -> new BusinessException(BusinessCode.BASKET_ITEM_NOT_FOUND, "Basket item not found"));
@@ -94,11 +96,24 @@ public class BasketService {
             throw new BusinessException(BusinessCode.BASKET_ITEM_MISMATCH, "Basket item does not belong to the user's basket");
         }
 
-        basket.getItems().remove(itemToRemove);
-        basketItemRepository.delete(itemToRemove);
-        basketRepository.save(basket); // Update basket to reflect removal
-        stockService.persistStockUpdate(itemToRemove.getProduct().getProductId(), itemToRemove.getQuantity()); // Return stock to DB and update Redis
-        basketRedisTemplate.opsForValue().set(getBasketKey(userId), basket, Duration.ofMinutes(30)); // Update Redis cache
+        int currentQuantity = itemToRemove.getQuantity();
+        Long productId = itemToRemove.getProduct().getProductId();
+
+        if (quantityToRemove >= currentQuantity) {
+            basket.getItems().remove(itemToRemove);
+            basketItemRepository.delete(itemToRemove);
+            stockService.persistStockUpdate(productId, currentQuantity);
+        } else {
+            itemToRemove.setQuantity(currentQuantity - quantityToRemove);
+            basketItemRepository.save(itemToRemove);
+            stockService.persistStockUpdate(productId, quantityToRemove);
+        }
+
+        Product updatedProduct = productService.getExistingProductById(productId);
+        itemToRemove.setProduct(updatedProduct);
+
+        basketRepository.save(basket);
+        basketRedisTemplate.opsForValue().set(getBasketKey(userId), basket, Duration.ofMinutes(30));
     }
 
     public Basket saveBasket(Basket basket) {
