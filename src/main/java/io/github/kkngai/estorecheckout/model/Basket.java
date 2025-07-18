@@ -1,5 +1,6 @@
 package io.github.kkngai.estorecheckout.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class Basket {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "basket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BasketItem> items = new ArrayList<>();
 

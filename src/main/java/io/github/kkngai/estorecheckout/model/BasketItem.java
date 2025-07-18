@@ -1,5 +1,6 @@
 package io.github.kkngai.estorecheckout.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class BasketItem {
     @Column(name = "basket_item_id")
     private Long basketItemId;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "basket_id", referencedColumnName = "basket_id")
     private Basket basket;
