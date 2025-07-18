@@ -2,9 +2,9 @@ package io.github.kkngai.estorecheckout.service;
 
 import io.github.kkngai.estorecheckout.model.Product;
 import io.github.kkngai.estorecheckout.model.request.ProductCreateRequest;
+import io.github.kkngai.estorecheckout.model.response.CustomPage;
 import io.github.kkngai.estorecheckout.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public Page<Product> getAllProducts(String category, BigDecimal priceMin, BigDecimal priceMax, Boolean inStock, Pageable pageable) {
+    public CustomPage<Product> getAllProducts(String category, BigDecimal priceMin, BigDecimal priceMax, Boolean inStock, Pageable pageable) {
         Specification<Product> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
 
         if (category != null && !category.isEmpty()) {
@@ -36,11 +36,11 @@ public class ProductService {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("stock"), 0));
         }
 
-        return productRepository.findAll(spec, pageable);
+        return new CustomPage<>(productRepository.findAll(spec, pageable));
     }
 
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable);
+    public CustomPage<Product> getAllProducts(Pageable pageable) {
+        return new CustomPage<>(productRepository.findAll(pageable));
     }
 
     public Optional<Product> getProductById(Long id) {
