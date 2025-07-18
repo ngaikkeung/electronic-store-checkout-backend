@@ -1,5 +1,7 @@
 package io.github.kkngai.estorecheckout.controller;
 
+import io.github.kkngai.estorecheckout.exception.BusinessException;
+import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Order;
 import io.github.kkngai.estorecheckout.model.response.CustomPage;
 import io.github.kkngai.estorecheckout.model.response.UnifiedResponse;
@@ -36,7 +38,7 @@ public class OrderController {
     public UnifiedResponse<Order> getOrderById(@PathVariable Long orderId) {
         return orderService.getOrderById(orderId)
                 .map(UnifiedResponse::success)
-                .orElse(UnifiedResponse.error("404", "Order not found"));
+                .orElseThrow(() -> new BusinessException(BusinessCode.ORDER_NOT_FOUND, "Order not found"));
     }
 
     @GetMapping("/{orderId}/receipt")
