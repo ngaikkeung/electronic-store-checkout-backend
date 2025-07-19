@@ -246,9 +246,10 @@ sequenceDiagram
 ```mermaid
 classDiagram
     class User {
-        +String userId
+        +Long userId
         +String name
         +String email
+        +LocalDateTime createdAt
     }
 
     class Admin {
@@ -264,17 +265,46 @@ classDiagram
     }
 
     class Product {
-        +String productId
+        +Long productId
         +String name
-        +double price
+        +BigDecimal price
+        +Integer stock
+        +String category
     }
 
     class Discount {
-        +String discountId
+        +Long discountId
         +String description
-        +String discountType
-        +Map(String, Object) rules
-        +Date expirationDate
+        +DiscountType discountType
+        +String rules
+        +LocalDateTime expirationDate
+        +LocalDateTime createAt
+    }
+
+    class Basket {
+        +Long basketId
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+        +BigDecimal totalPrice
+    }
+
+    class BasketItem {
+        +Long basketItemId
+        +Integer quantity
+    }
+
+    class Order {
+        +Long orderId
+        +OrderStatus status
+        +BigDecimal totalPrice
+        +LocalDateTime createdAt
+    }
+
+    class OrderItem {
+        +Long orderItemId
+        +Integer quantity
+        +BigDecimal priceAtPurchase
+        +BigDecimal discountedPrice
     }
 
     class PricingService {
@@ -297,7 +327,7 @@ classDiagram
     class FixedAmountOffStrategy {
         +apply(basket, rules) double
     }
-
+    
     class SpendThresholdStrategy {
         +apply(basket, rules) double
     }
@@ -306,32 +336,24 @@ classDiagram
         +apply(basket, rules) double
     }
 
-    class Basket {
-        -List(BasketItem) items
-        +addItem(item)
-    }
-
-    class Order {
-        +String orderId
-        +double totalPrice
-    }
-
     %% --- Relationships ---
     User <|-- Admin
     User <|-- Customer
     
     Customer "1" -- "1" Basket : has
-    Basket "1" *-- "*" Product : contains
-    
-    %% A discount can optionally apply to one product
-    Discount "0..*" -- "0..1" Product : applies to
     Customer ..> Order : creates
 
-    %% Admin manages products and discounts
     Admin ..> Product : creates/removes
     Admin ..> Discount : creates
 
-    %% Strategy Pattern for Discounts
+    Basket "1" *-- "*" BasketItem : contains
+    BasketItem "1" -- "1" Product : refers to
+
+    Order "1" *-- "*" OrderItem : contains
+    OrderItem "1" -- "1" Product : refers to
+
+    Product "1" -- "0..*" Discount : can have
+
     PricingService ..> DiscountStrategy : uses
     PricingService ..> Discount : reads
     DiscountStrategy <|.. PercentageDiscountStrategy : implements
@@ -341,7 +363,7 @@ classDiagram
     DiscountStrategy <|.. BundlePriceStrategy : implements
 ``` 
 
-ER Diagram
+##ER Diagram
 ```mermaid
 erDiagram
     USERS {
@@ -373,9 +395,10 @@ erDiagram
         discount_id bigint PK
         product_id bigint FK "nullable"
         description varchar
-        varchar discount_type "e.g., 'PERCENTAGE', 'BOGO_50_PERCENT_OFF_SECOND'"
-        json rules "e.g., {'percentage': 15} or {'buy_quantity': 1, 'get_quantity': 1, 'discount_percentage': 50}"
+        discount_type varchar "e.g., 'PERCENTAGE', 'BOGO'"
+        rules json "e.g., {'percentage': 15} or {'buy_quantity': 1, 'get_quantity': 1, 'discount_percentage': 50}"
         expiration_date datetime
+        create_at datetime
     }
 
     ORDERS {
@@ -392,6 +415,21 @@ erDiagram
         product_id bigint FK
         quantity int
         price_at_purchase decimal
+        discounted_price decimal
+    }
+
+    BASKETS {
+        basket_id bigint PK
+        user_id bigint FK
+        created_at datetime
+        updated_at datetime
+    }
+
+    BASKET_ITEMS {
+        basket_item_id bigint PK
+        basket_id bigint FK
+        product_id bigint FK
+        quantity int
     }
 
     %% --- Join Tables for Many-to-Many Relationships ---
@@ -413,5 +451,8 @@ erDiagram
     USERS ||--o{ ORDERS : "places"
     ORDERS ||--o{ ORDER_ITEMS : "contains"
     PRODUCTS ||--o{ ORDER_ITEMS : "appears in"
+    USERS ||--o{ BASKETS : "has"
+    BASKETS ||--o{ BASKET_ITEMS : "contains"
+    PRODUCTS ||--o{ BASKET_ITEMS : "appears in"
     PRODUCTS ||--o{ DISCOUNTS : "can have"
 ```

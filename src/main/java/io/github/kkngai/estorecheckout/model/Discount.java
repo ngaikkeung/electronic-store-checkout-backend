@@ -34,4 +34,7 @@ public class Discount {
 
     @Column(name = "expiration_date")
     private LocalDateTime expirationDate;
+
+    @Column(name = "create_at", nullable = false, updatable = false)
+    private LocalDateTime createAt = LocalDateTime.now();
 } 

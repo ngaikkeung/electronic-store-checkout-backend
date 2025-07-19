@@ -1,11 +1,11 @@
 package io.github.kkngai.estorecheckout.controller;
 
+import io.github.kkngai.estorecheckout.dto.CustomPage;
 import io.github.kkngai.estorecheckout.dto.response.ReceiptResponse;
+import io.github.kkngai.estorecheckout.dto.response.UnifiedResponse;
 import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Order;
-import io.github.kkngai.estorecheckout.dto.CustomPage;
-import io.github.kkngai.estorecheckout.dto.response.UnifiedResponse;
 import io.github.kkngai.estorecheckout.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -18,10 +18,8 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // Assuming user ID can be extracted from security context or passed as a header/param for now
     private Long getCurrentUserId() {
-        // This should be replaced with actual user ID retrieval from security context
-        return 1L; // Placeholder for a logged-in user
+        return 1L;
     }
 
     @PostMapping

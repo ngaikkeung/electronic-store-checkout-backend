@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface DiscountRepository extends JpaRepository<Discount, Long> {
-    List<Discount> findByExpirationDateIsNullOrCreateAtBeforeAndExpirationDateAfter(LocalDateTime now1, LocalDateTime now2);
+    List<Discount> findByProduct_ProductIdAndExpirationDateAfterOrExpirationDateIsNull(Long productId, LocalDateTime now);
 }

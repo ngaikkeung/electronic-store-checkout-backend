@@ -1,58 +1,49 @@
 package io.github.kkngai.estorecheckout.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.Basket;
-import io.github.kkngai.estorecheckout.model.BusinessCode;
+import io.github.kkngai.estorecheckout.model.BasketItem;
 import io.github.kkngai.estorecheckout.model.Discount;
 import io.github.kkngai.estorecheckout.model.DiscountType;
 import io.github.kkngai.estorecheckout.service.discount.*;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class PricingService {
 
-    private final Map<DiscountType, DiscountStrategy> discountStrategies;
-    private final ObjectMapper objectMapper;
+    private final Map<DiscountType, DiscountStrategy> discountStrategyMap = new HashMap<>();
+    private final DiscountService discountService;
 
-    public PricingService() {
-        this.discountStrategies = new HashMap<>();
-        discountStrategies.put(DiscountType.PERCENTAGE, new PercentageDiscountStrategy());
-        discountStrategies.put(DiscountType.BOGO_DEAL, new BogoDealStrategy());
-        discountStrategies.put(DiscountType.FIXED_AMOUNT_OFF, new FixedAmountOffStrategy());
-        discountStrategies.put(DiscountType.SPEND_THRESHOLD, new SpendThresholdStrategy());
-        discountStrategies.put(DiscountType.BUNDLE_PRICE, new BundlePriceStrategy());
-        this.objectMapper = new ObjectMapper();
+    public PricingService(DiscountService discountService,
+                         PercentageDiscountStrategy percentageDiscountStrategy,
+                         FixedAmountOffStrategy fixedAmountOffStrategy,
+                         SpendThresholdStrategy spendThresholdStrategy,
+                         BundlePriceStrategy bundlePriceStrategy,
+                         BogoDealStrategy bogoDealStrategy) {
+        this.discountService = discountService;
+        discountStrategyMap.put(DiscountType.PERCENTAGE, percentageDiscountStrategy);
+        discountStrategyMap.put(DiscountType.FIXED_AMOUNT_OFF, fixedAmountOffStrategy);
+        discountStrategyMap.put(DiscountType.SPEND_THRESHOLD, spendThresholdStrategy);
+        discountStrategyMap.put(DiscountType.BUNDLE_PRICE, bundlePriceStrategy);
+        discountStrategyMap.put(DiscountType.BOGO_DEAL, bogoDealStrategy);
     }
 
-    public BigDecimal calculateDiscount(Basket basket, Discount discount) {
-        DiscountStrategy strategy = discountStrategies.get(discount.getDiscountType());
-        if (strategy != null) {
-            try {
-                Map<String, Object> rulesMap = objectMapper.readValue(discount.getRules(), new TypeReference<>() {
-                });
-                return strategy.apply(basket, rulesMap);
-            } catch (JsonProcessingException e) {
-                throw new BusinessException(BusinessCode.INVALID_DISCOUNT_RULES, "Invalid discount rules JSON: " + e.getMessage());
+    public BigDecimal calculateItemPriceWithDiscount(BasketItem currentItem, Basket basket) {
+        BigDecimal finalPricePerUnit = currentItem.getProduct().getPrice();
+
+        List<Discount> activeDiscounts = discountService.getAllActiveDiscountsByProductId(LocalDateTime.now(), currentItem.getProduct().getProductId());
+
+        for (Discount discount : activeDiscounts) {
+            DiscountStrategy strategy = discountStrategyMap.get(discount.getDiscountType());
+            if (strategy != null) {
+                finalPricePerUnit = strategy.calculateItemDiscount(currentItem, basket, discount);
             }
         }
-        return BigDecimal.ZERO;
-    }
-
-    public BigDecimal calculateTotalAmount(Basket basket, List<Discount> applicableDiscounts) {
-        BigDecimal total = basket.getTotalPrice();
-        for (Discount discount : applicableDiscounts) {
-            total = total.subtract(calculateDiscount(basket, discount));
-        }
-        return total;
+        return finalPricePerUnit;
     }
 }

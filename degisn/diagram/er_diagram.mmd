@@ -28,9 +28,10 @@ erDiagram
         discount_id bigint PK
         product_id bigint FK "nullable"
         description varchar
-        nt_type varchar "e.g., 'PERCENTAGE', 'BOGO_50_PERCENT_OFF_SECOND'"
+        discount_type varchar "e.g., 'PERCENTAGE', 'BOGO'"
         rules json "e.g., {'percentage': 15} or {'buy_quantity': 1, 'get_quantity': 1, 'discount_percentage': 50}"
         expiration_date datetime
+        create_at datetime
     }
 
     ORDERS {
@@ -47,6 +48,21 @@ erDiagram
         product_id bigint FK
         quantity int
         price_at_purchase decimal
+        discounted_price decimal
+    }
+
+    BASKETS {
+        basket_id bigint PK
+        user_id bigint FK
+        created_at datetime
+        updated_at datetime
+    }
+
+    BASKET_ITEMS {
+        basket_item_id bigint PK
+        basket_id bigint FK
+        product_id bigint FK
+        quantity int
     }
 
     %% --- Join Tables for Many-to-Many Relationships ---
@@ -68,4 +84,7 @@ erDiagram
     USERS ||--o{ ORDERS : "places"
     ORDERS ||--o{ ORDER_ITEMS : "contains"
     PRODUCTS ||--o{ ORDER_ITEMS : "appears in"
+    USERS ||--o{ BASKETS : "has"
+    BASKETS ||--o{ BASKET_ITEMS : "contains"
+    PRODUCTS ||--o{ BASKET_ITEMS : "appears in"
     PRODUCTS ||--o{ DISCOUNTS : "can have"

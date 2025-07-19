@@ -15,11 +15,8 @@ public class BasketController {
 
     private final BasketService basketService;
 
-    // Assuming user ID can be extracted from security context or passed as a header/param for now
-    // For simplicity, let's assume a fixed user ID for now, or it comes from authentication.
     private Long getCurrentUserId() {
-        // This should be replaced with actual user ID retrieval from security context
-        return 1L; // Placeholder for a logged-in user
+        return 1L;
     }
 
     @PostMapping("/items")

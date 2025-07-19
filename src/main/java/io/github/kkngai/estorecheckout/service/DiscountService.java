@@ -61,8 +61,7 @@ public class DiscountService {
         return new CustomPage<>(discountRepository.findAll(pageable));
     }
 
-    public List<Discount> getAllActiveDiscounts() {
-        LocalDateTime now = LocalDateTime.now();
-        return discountRepository.findByExpirationDateIsNullOrCreateAtBeforeAndExpirationDateAfter(now, now);
+    public List<Discount> getAllActiveDiscountsByProductId(LocalDateTime now, Long productId) {
+        return discountRepository.findByProduct_ProductIdAndExpirationDateAfterOrExpirationDateIsNull(productId, now);
     }
 }

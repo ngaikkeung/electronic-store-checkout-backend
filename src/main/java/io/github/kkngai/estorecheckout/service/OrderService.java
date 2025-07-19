@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,7 +26,6 @@ public class OrderService {
     private final BasketService basketService;
     private final UserService userService;
     private final PricingService pricingService;
-    private final DiscountService discountService;
 
     public CustomPage<Order> getAllOrders(Pageable pageable) {
         Page<Order> page = orderRepository.findAll(pageable);
@@ -49,19 +48,26 @@ public class OrderService {
         order.setStatus(OrderStatus.PROCESSING);
         order.setCreatedAt(LocalDateTime.now());
 
-        List<Discount> activeDiscounts = discountService.getAllActiveDiscounts();
-        BigDecimal finalPrice = pricingService.calculateTotalAmount(basket, activeDiscounts);
-        order.setTotalPrice(finalPrice);
+        order.setTotalPrice(BigDecimal.ZERO);
         order = orderRepository.save(order);
 
+        BigDecimal totalOrderPrice = BigDecimal.ZERO;
+
         for (var basketItem : basket.getItems()) {
+            BigDecimal discountedPricePerUnit = pricingService.calculateItemPriceWithDiscount(basketItem, basket);
+            BigDecimal discountedPrice = discountedPricePerUnit.multiply(BigDecimal.valueOf(basketItem.getQuantity())).setScale(2, RoundingMode.HALF_UP);
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setProduct(basketItem.getProduct());
             orderItem.setQuantity(basketItem.getQuantity());
             orderItem.setPriceAtPurchase(basketItem.getProduct().getPrice());
+            orderItem.setDiscountedPrice(discountedPrice);
             orderItemRepository.save(orderItem);
+            totalOrderPrice = totalOrderPrice.add(discountedPrice);
         }
+
+        order.setTotalPrice(totalOrderPrice);
+        orderRepository.save(order);
 
         basket.getItems().clear();
         basketService.saveBasketAndCache(basket);
@@ -84,12 +90,6 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(BusinessCode.ORDER_NOT_FOUND, "Order not found"));
 
-        BigDecimal subtotal = order.getOrderItems().stream()
-                .map(item -> item.getPriceAtPurchase().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal discountAmount = subtotal.subtract(order.getTotalPrice());
-
-        return ReceiptResponse.fromOrder(order, discountAmount);
+        return ReceiptResponse.fromOrder(order);
     }
 }

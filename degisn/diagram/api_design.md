@@ -38,6 +38,7 @@ Endpoints for administrators to manage the store.
 | `DELETE` | `/api/admin/products/{id}` | Deletes a product.                            | `ROLE_ADMIN`  |
 | `POST` | `/api/admin/discounts` | Creates one or more new discounts.            | `ROLE_ADMIN`  |
 | `PUT`  | `/api/admin/discounts/{discountId}`   | Edits an existing discount.                   | `ROLE_ADMIN`  |
+| `GET`  | `/api/admin/discounts` | Gets a paginated list of all discounts.       | `ROLE_ADMIN`  |
 | `GET`  | `/api/admin/orders`    | Gets a paginated list of all customer orders. | `ROLE_ADMIN`  |
 
 ### **`POST /api/admin/products`**

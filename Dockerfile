@@ -12,4 +12,4 @@ COPY --from=build /app/target/*.jar app.jar
 COPY src/main/resources/application.yaml ./application.yaml
 COPY src/main/resources/data.sql ./data.sql
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.config.location=classpath:/application.yaml"] 
+ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "-jar", "app.jar", "--spring.config.location=classpath:/application.yaml"] 

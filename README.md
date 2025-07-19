@@ -12,7 +12,7 @@ A Spring Boot backend application for electronic store checkout functionality.
 
 ## Technology Stack
 
-- Java 21
+- Java 17
 - Spring Boot 3.5.3
 - Spring Data JPA
 - H2 Database
@@ -26,18 +26,19 @@ src/
 ├── main/
 │   ├── java/io/github/kkngai/estorecheckout/
 │   │   ├── EstorecheckoutApplication.java
+│   │   ├── config/
 │   │   ├── controller/
-│   │   │   └── ProductController.java
-│   │   ├── service/
-│   │   │   └── ProductService.java
+│   │   ├── dto/
+│   │   ├── exception/
+│   │   ├── model/
 │   │   ├── repository/
-│   │   │   └── ProductRepository.java
-│   │   └── model/
-│   │       └── Product.java
+│   │   └── service/
 │   └── resources/
-│       └── application.properties
+│       ├── application.yaml
+│       └── data.sql
 └── test/
     └── java/io/github/kkngai/estorecheckout/
+        ├── service/
         └── EstorecheckoutApplicationTests.java
 ```
 
@@ -49,36 +50,42 @@ For system diagrams, see [Diagram.md](Diagram.md).
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 17 or higher
 - Maven 3.6 or higher
 
 ### Running the Application
 
-1. Clone the repository
-2. Navigate to the project directory
+You can run the application using Maven or Docker.
+
+#### Using Maven
+
+1. Clone the repository.
+2. Navigate to the project directory.
 3. Run the application:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The application will start on `http://localhost:8080`
+The application will start on `http://localhost:8080`.
+
+#### Using Docker
+
+1. Ensure Docker and Docker Compose are installed.
+2. Clone the repository.
+3. Navigate to the project directory.
+4. Build and run the Docker containers:
+
+```bash
+docker-compose up --build
+```
+
+The application will be accessible at `http://localhost:8080` (or the port configured in `docker-compose.yml`).
+
 
 ### API Endpoints
 
-- `GET /api/products` - Get all products
-- `GET /api/products/{id}` - Get product by ID
-- `POST /api/products` - Create a new product
-- `PUT /api/products/{id}` - Update a product
-- `DELETE /api/products/{id}` - Delete a product
-
-### H2 Database Console
-
-Access the H2 database console at: `http://localhost:8080/h2-console`
-
-- JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`
-- Password: `password`
+For a detailed list of API endpoints, please refer to the [API Design Document](degisn/diagram/api_design.md).
 
 ## Building the Application
 

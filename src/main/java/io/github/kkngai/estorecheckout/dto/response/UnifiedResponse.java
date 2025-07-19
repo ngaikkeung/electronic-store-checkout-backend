@@ -26,7 +26,7 @@ public class UnifiedResponse<T> {
         return new UnifiedResponse<>(BusinessCode.SYSTEM_ERROR.getCode(), message, null, false);
     }
 
-    public static <T> UnifiedResponse<T> error(String code, String message) {
-        return new UnifiedResponse<>(code, message, null, false);
+    public static <T> UnifiedResponse<T> error(BusinessCode businessCode, String message) {
+        return new UnifiedResponse<>(businessCode.getCode(), message, null, false);
     }
 }
