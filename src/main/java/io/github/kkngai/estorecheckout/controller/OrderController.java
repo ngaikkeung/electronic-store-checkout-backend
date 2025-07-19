@@ -1,5 +1,6 @@
 package io.github.kkngai.estorecheckout.controller;
 
+import io.github.kkngai.estorecheckout.dto.response.ReceiptResponse;
 import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Order;
@@ -42,7 +43,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/receipt")
-    public UnifiedResponse<Order> getOrderReceipt(@PathVariable Long orderId) {
+    public UnifiedResponse<ReceiptResponse> getOrderReceipt(@PathVariable Long orderId) {
         return UnifiedResponse.success(orderService.getOrderReceipt(orderId));
     }
 }

@@ -1,5 +1,6 @@
 package io.github.kkngai.estorecheckout.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +18,7 @@ public class OrderItem {
     @Column(name = "order_item_id")
     private Long orderItemId;
 
+    @JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumn(name = "order_id", referencedColumnName = "order_id")
     private Order order;

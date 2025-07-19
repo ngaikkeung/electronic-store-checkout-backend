@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,5 +59,10 @@ public class DiscountService {
 
     public CustomPage<Discount> getAllDiscounts(Pageable pageable) {
         return new CustomPage<>(discountRepository.findAll(pageable));
+    }
+
+    public List<Discount> getAllActiveDiscounts() {
+        LocalDateTime now = LocalDateTime.now();
+        return discountRepository.findByExpirationDateIsNullOrCreateAtBeforeAndExpirationDateAfter(now, now);
     }
 }

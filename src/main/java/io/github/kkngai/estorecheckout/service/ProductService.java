@@ -1,11 +1,11 @@
 package io.github.kkngai.estorecheckout.service;
 
+import io.github.kkngai.estorecheckout.dto.CustomPage;
+import io.github.kkngai.estorecheckout.dto.request.ProductCreateRequest;
+import io.github.kkngai.estorecheckout.dto.response.ProductResponse;
 import io.github.kkngai.estorecheckout.exception.BusinessException;
 import io.github.kkngai.estorecheckout.model.BusinessCode;
 import io.github.kkngai.estorecheckout.model.Product;
-import io.github.kkngai.estorecheckout.dto.request.ProductCreateRequest;
-import io.github.kkngai.estorecheckout.dto.CustomPage;
-import io.github.kkngai.estorecheckout.dto.response.ProductResponse;
 import io.github.kkngai.estorecheckout.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,8 +36,12 @@ public class ProductService {
         if (priceMax != null) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("price"), priceMax));
         }
-        if (inStock != null && inStock) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("stock"), 0));
+        if (inStock != null) {
+            if (inStock) {
+                spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("stock"), 0));
+            } else {
+                spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("stock"), 0));
+            }
         }
 
         Page<Product> page = productRepository.findAll(spec, pageable);
