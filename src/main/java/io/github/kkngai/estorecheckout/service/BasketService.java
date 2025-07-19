@@ -31,11 +31,6 @@ public class BasketService {
 
     @Transactional
     public Basket getOrCreateBasket(Long userId) {
-        Basket basket = basketRedisTemplate.opsForValue().get(getBasketKey(userId));
-        if (basket != null) {
-            return basket;
-        }
-
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new BusinessException(BusinessCode.USER_NOT_FOUND, "User not found"));
         return basketRepository.findByUser(user)
@@ -73,11 +68,10 @@ public class BasketService {
                 basket.getItems().add(basketItem);
             }
 
-            basketRepository.save(basket);
+            saveBasketAndCache(basket);
             stockService.persistStockUpdate(productId, -quantity);
             product = productService.getExistingProductById(productId);
             basketItem.setProduct(product);
-            basketRedisTemplate.opsForValue().set(getBasketKey(userId), basket, Duration.ofMinutes(30));
             return basketItem;
         } catch (Exception e) {
             stockService.rollbackStock(productId, quantity);
@@ -112,11 +106,16 @@ public class BasketService {
         Product updatedProduct = productService.getExistingProductById(productId);
         itemToRemove.setProduct(updatedProduct);
 
-        basketRepository.save(basket);
-        basketRedisTemplate.opsForValue().set(getBasketKey(userId), basket, Duration.ofMinutes(30));
+        saveBasketAndCache(basket);
     }
 
-    public Basket saveBasket(Basket basket) {
-        return basketRepository.save(basket);
+    @Transactional
+    public void saveBasketAndCache(Basket basket) {
+        basketRepository.save(basket);
+        updateBasketInCache(basket);
+    }
+
+    private void updateBasketInCache(Basket basket) {
+        basketRedisTemplate.opsForValue().set(getBasketKey(basket.getUser().getUserId()), basket, Duration.ofHours(24));
     }
 }

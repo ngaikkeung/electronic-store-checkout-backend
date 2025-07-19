@@ -60,7 +60,7 @@ public class OrderService {
 
         // Clear the basket after order creation
         basket.getItems().clear();
-        basketService.saveBasket(basket);
+        basketService.saveBasketAndCache(basket);
 
         return order;
     }

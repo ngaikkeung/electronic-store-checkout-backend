@@ -36,7 +36,6 @@ public class BasketController {
 
     @GetMapping
     public UnifiedResponse<Basket> getBasket() {
-        Basket basket = basketService.getOrCreateBasket(getCurrentUserId());
-        return UnifiedResponse.success(basket);
+        return UnifiedResponse.success(basketService.getOrCreateBasket(getCurrentUserId()));
     }
 }
