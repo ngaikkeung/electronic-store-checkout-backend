@@ -194,7 +194,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UnifiedResponseOfString'
+                $ref: '#/components/schemas/UnifiedResponseOfBasketItem'
   /api/basket/items/{itemId}:
     delete:
       summary: Remove an item from the user's basket
@@ -768,15 +768,15 @@ components:
         orderId:
           type: integer
           format: int64
-          example: 902
+          example: 1
         userId:
           type: integer
           format: int64
-          example: 45
+          example: 1
         orderDate:
           type: string
           format: date-time
-          example: "2025-07-17T20:16:00Z"
+          example: "2025-07-20T18:15:06.701566Z"
         items:
           type: array
           items:
@@ -784,45 +784,45 @@ components:
         subtotal:
           type: number
           format: double
-          example: 289.97
+          example: 75.00
         totalDiscountAmount:
           type: number
           format: double
-          example: 107.99
+          example: 25.00
         totalAmount:
           type: number
           format: double
-          example: 181.98
+          example: 50.00
     ReceiptItem:
       type: object
       properties:
         productId:
           type: integer
           format: int64
-          example: 101
+          example: 2
         productName:
           type: string
-          example: "Wireless Mechanical Keyboard"
+          example: "Mouse"
         quantity:
           type: integer
           format: int32
-          example: 1
+          example: 3
         originalPricePerUnit:
           type: number
           format: double
-          example: 129.99
+          example: 25.00
         originalItemTotal:
           type: number
           format: double
-          example: 129.99
+          example: 75.00
         discountApplied:
           type: number
           format: double
-          example: 0.0
+          example: 25.00
         totalPriceAfterDiscount:
           type: number
           format: double
-          example: 129.99
+          example: 50.00
     UnifiedResponseOfReceiptResponse:
       allOf:
         - $ref: '#/components/schemas/UnifiedResponse'
@@ -890,6 +890,13 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/Product'
+    UnifiedResponseOfBasketItem:
+      allOf:
+        - $ref: '#/components/schemas/UnifiedResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/BasketItem'
     UnifiedResponseOfCustomPageProduct:
       allOf:
         - $ref: '#/components/schemas/UnifiedResponse'

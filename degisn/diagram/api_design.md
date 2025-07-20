@@ -6,13 +6,7 @@ This document outlines the RESTful API endpoints for the E-Store Checkout System
 
 ## Authentication
 
-All requests must include a valid JSON Web Token (JWT) in the `Authorization` header.
-
-**Format:**
-
-```
-Authorization: Bearer <your_jwt>
-```
+// TODO
 
 ---
 
@@ -64,25 +58,30 @@ Creates one or more new products.
 ]
 ```
 
-**Response (201 Created):**
+**Response (200 OK):**
 
 ```json
-[
-  {
-    "productId": "102",
-    "name": "High-Performance Gaming Mouse",
-    "price": 79.99,
-    "stock": 150,
-    "category": "Peripherals"
-  },
-  {
-    "productId": "103",
-    "name": "Ergonomic Office Chair",
-    "price": 349.99,
-    "stock": 50,
-    "category": "Office Furniture"
-  }
-]
+{
+  "code": "0",
+  "message": null,
+  "data": [
+    {
+      "productId": 102,
+      "name": "High-Performance Gaming Mouse",
+      "price": 79.99,
+      "stock": 150,
+      "category": "Peripherals"
+    },
+    {
+      "productId": 103,
+      "name": "Ergonomic Office Chair",
+      "price": 349.99,
+      "stock": 50,
+      "category": "Office Furniture"
+    }
+  ],
+  "success": true
+}
 ```
 
 ### **`GET /api/admin/products`**
@@ -94,28 +93,33 @@ Gets a paginated list of all products.
 
 ```json
 {
-  "content": [
-    {
-      "productId": "101",
-      "name": "Wireless Mechanical Keyboard",
-      "price": 79.99,
-      "stock": 50,
-      "category": "Peripherals"
+  "code": "0",
+  "message": null,
+  "data": {
+    "content": [
+      {
+        "productId": 101,
+        "name": "Wireless Mechanical Keyboard",
+        "price": 79.99,
+        "stock": 50,
+        "category": "Peripherals"
+      },
+      {
+        "productId": 102,
+        "name": "High-Performance Gaming Mouse",
+        "price": 79.99,
+        "stock": 150,
+        "category": "Peripherals"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 5
     },
-    {
-      "productId": "102",
-      "name": "High-Performance Gaming Mouse",
-      "price": 79.99,
-      "stock": 150,
-      "category": "Peripherals"
-    }
-  ],
-  "pageable": {
-    "pageNumber": 0,
-    "pageSize": 5
+    "totalPages": 1,
+    "totalElements": 2
   },
-  "totalPages": 1,
-  "totalElements": 2
+  "success": true
 }
 ```
 
@@ -131,40 +135,15 @@ Creates one or more new discounts. It can be a simple percentage, a complex rule
     "productId": null,
     "description": "10% Off Sitewide",
     "discountType": "PERCENTAGE",
-    "rules": {
-      "percentage": 10
-    },
+    "rules": "{\"percentage\": 10}",
     "expirationDate": "2025-12-31T23:59:59Z"
   },
   {
-    "productId": "101",
+    "productId": 101,
     "description": "Buy 1 Get 1 50% Off",
-    "discountType": "BOGO_50_PERCENT_OFF_SECOND",
-    "rules": {
-      "buyQuantity": 1,
-      "getQuantity": 1,
-      "discountPercentage": 50
-    },
+    "discountType": "BOGO_DEAL",
+    "rules": "{\"buyQuantity\": 1, \"getQuantity\": 1, \"discountPercentage\": 50}",
     "expirationDate": "2025-12-31T23:59:59Z"
-  }
-]
-```
-
-**Response (201 Created):**
-
-```json
-[
-  {
-    "discountId": "58",
-    "productId": "101",
-    "description": "Buy 1 Get 1 50% Off",
-    "discountType": "BOGO_50_PERCENT_OFF_SECOND"
-  },
-  {
-    "discountId": "59",
-    "productId": null,
-    "description": "10% Off Sitewide",
-    "discountType": "PERCENTAGE"
   }
 ]
 ```
@@ -180,23 +159,8 @@ Edits an existing discount. Allows updating the description, type, rules, expira
   "productId": "101",
   "description": "Buy 2 Get 1 Free",
   "discountType": "BUY_2_GET_1_FREE",
-  "rules": {
-    "buyQuantity": 2,
-    "getQuantity": 1,
-    "discountPercentage": 100
-  },
+  "rules": {"buyQuantity": 2, "getQuantity": 1, "discountPercentage": 100},
   "expirationDate": "2026-01-01T23:59:59Z"
-}
-```
-
-**Response (200 OK):**
-
-```json
-{
-  "discountId": "58",
-  "productId": "101",
-  "description": "Buy 2 Get 1 Free",
-  "discountType": "BUY_2_GET_1_FREE"
 }
 ```
 
@@ -209,20 +173,26 @@ Gets a paginated list of all customer orders.
 
 ```json
 {
-  "content": [
-    {
-      "orderId": "901",
-      "userId": "45",
-      "status": "SHIPPED",
-      "totalPrice": 129.99
-    }
-  ],
-  "pageable": {
-    "pageNumber": 0,
-    "pageSize": 10
+  "code": "0",
+  "message": null,
+  "data": {
+    "content": [
+      {
+        "orderId": 901,
+        "userId": 45,
+        "status": "SHIPPED",
+        "totalPrice": 129.99,
+        "createdAt": "2025-07-17T20:16:00Z"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 10
+    },
+    "totalPages": 1,
+    "totalElements": 1
   },
-  "totalPages": 1,
-  "totalElements": 1
+  "success": true
 }
 ```
 
@@ -257,23 +227,31 @@ This request asks for products in the "peripherals" category, with a price betwe
 
 ```json
 {
-  "content": [
-    {
-      "productId": "102",
-      "name": "High-Performance Gaming Mouse",
-      "price": 79.99,
-      "stock": 150
-    },
-    {
-      "productId": "102",
-      "name": "High-Performance Gaming Mouse",
-      "price": 79.99,
-      "stock": 49,
-      "category": "Peripherals"
-    }
-  ],
-  "totalPages": 1,
-  "totalElements": 1
+  "code": "0",
+  "message": null,
+  "data": {
+    "content": [
+      {
+        "productId": 102,
+        "name": "High-Performance Gaming Mouse",
+        "price": 79.99,
+        "stock": 150,
+        "category": "Peripherals",
+        "inStock": true
+      },
+      {
+        "productId": 102,
+        "name": "High-Performance Gaming Mouse",
+        "price": 79.99,
+        "stock": 49,
+        "category": "Peripherals",
+        "inStock": true
+      }
+    ],
+    "totalPages": 1,
+    "totalElements": 1
+  },
+  "success": true
 }
 ```
 
@@ -286,11 +264,17 @@ Gets details for a single product.
 
 ```json
 {
-  "productId": "101",
-  "name": "Wireless Mechanical Keyboard",
-  "price": 129.99,
-  "stock": 49,
-  "category": "Peripherals"
+  "code": "0",
+  "message": null,
+  "data": {
+    "productId": 101,
+    "name": "Wireless Mechanical Keyboard",
+    "price": 129.99,
+    "stock": 49,
+    "category": "Peripherals",
+    "inStock": true
+  },
+  "success": true
 }
 ```
 
@@ -311,7 +295,20 @@ Adds an item to the current user's basket.
 
 ```json
 {
-  "message": "Item added to basket successfully"
+  "code": "0",
+  "message": null,
+  "data": {
+    "basketItemId": 1,
+    "product": {
+      "productId": 101,
+      "name": "Wireless Mechanical Keyboard",
+      "price": 129.99,
+      "stock": 49,
+      "category": "Peripherals"
+    },
+    "quantity": 1
+  },
+  "success": true
 }
 ```
 
@@ -324,7 +321,10 @@ Removes an item from the current user's basket.
 
 ```json
 {
-  "message": "Item removed from basket successfully"
+  "code": "0",
+  "message": null,
+  "data": "Item removed from basket successfully",
+  "success": true
 }
 ```
 
@@ -337,16 +337,34 @@ Retrieves the current user's basket contents.
 
 ```json
 {
-  "items": [
-    {
-      "itemId": 789,
-      "productId": "101",
-      "name": "Wireless Mechanical Keyboard",
-      "quantity": 1,
-      "price": 129.99
-    }
-  ],
-  "totalPrice": 129.99
+  "code": "0",
+  "message": null,
+  "data": {
+    "basketId": 1,
+    "user": {
+      "userId": 1,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "createdAt": "2023-01-01T12:00:00Z"
+    },
+    "items": [
+      {
+        "basketItemId": 789,
+        "product": {
+          "productId": 101,
+          "name": "Wireless Mechanical Keyboard",
+          "price": 129.99,
+          "stock": 49,
+          "category": "Peripherals"
+        },
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2023-01-01T12:00:00Z",
+    "updatedAt": "2023-01-01T12:00:00Z",
+    "totalPrice": 129.99
+  },
+  "success": true
 }
 ```
 
@@ -355,14 +373,26 @@ Retrieves the current user's basket contents.
 Creates an order from the current user's basket.
 
 **Request Body:** (Empty, as it uses the session's basket)
-**Response (201 Created):**
+**Response (200 OK):**
 
 ```json
 {
-  "orderId": "902",
-  "status": "PROCESSING",
-  "totalPrice": 129.99,
-  "message": "Order created successfully"
+  "code": "0",
+  "message": null,
+  "data": {
+    "orderId": 902,
+    "user": {
+      "userId": 1,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "createdAt": "2023-01-01T12:00:00Z"
+    },
+    "status": "PROCESSING",
+    "totalPrice": 129.99,
+    "createdAt": "2025-07-17T20:16:00Z",
+    "orderItems": []
+  },
+  "success": true
 }
 ```
 
@@ -375,16 +405,32 @@ Gets a paginated list of the current user's past orders.
 
 ```json
 {
-  "content": [
-    {
-      "orderId": "902",
-      "status": "PROCESSING",
-      "totalPrice": 129.99,
-      "createdAt": "2025-07-17T20:16:00Z"
-    }
-  ],
-  "totalPages": 1,
-  "totalElements": 1
+  "code": "0",
+  "message": null,
+  "data": {
+    "content": [
+      {
+        "orderId": 902,
+        "user": {
+          "userId": 1,
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "createdAt": "2023-01-01T12:00:00Z"
+        },
+        "status": "PROCESSING",
+        "totalPrice": 129.99,
+        "createdAt": "2025-07-17T20:16:00Z",
+        "orderItems": []
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 5
+    },
+    "totalPages": 1,
+    "totalElements": 1
+  },
+  "success": true
 }
 ```
 
@@ -397,17 +443,36 @@ Gets the details of a single past order.
 
 ```json
 {
-  "orderId": "902",
-  "status": "PROCESSING",
-  "totalPrice": 129.99,
-  "items": [
-    {
-      "productId": "101",
-      "name": "Wireless Mechanical Keyboard",
-      "quantity": 1,
-      "price": 129.99
-    }
-  ]
+  "code": "0",
+  "message": null,
+  "data": {
+    "orderId": 902,
+    "user": {
+      "userId": 1,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "createdAt": "2023-01-01T12:00:00Z"
+    },
+    "status": "PROCESSING",
+    "totalPrice": 129.99,
+    "createdAt": "2025-07-17T20:16:00Z",
+    "orderItems": [
+      {
+        "orderItemId": 1,
+        "product": {
+          "productId": 101,
+          "name": "Wireless Mechanical Keyboard",
+          "price": 129.99,
+          "stock": 49,
+          "category": "Peripherals"
+        },
+        "quantity": 1,
+        "priceAtPurchase": 129.99,
+        "discountedPrice": 129.99
+      }
+    ]
+  },
+  "success": true
 }
 ```
 
@@ -421,36 +486,27 @@ Gets a receipt for a specific order, including all purchased items, deals applie
 
 ```json
 {
-  "orderId": "902",
-  "purchasedAt": "2025-07-17T20:16:00Z",
-  "items": [
-    {
-      "productId": "101",
-      "name": "Wireless Mechanical Keyboard",
-      "quantity": 1,
-      "unitPrice": 129.99,
-      "total": 129.99
-    },
-    {
-      "productId": "102",
-      "name": "High-Performance Gaming Mouse",
-      "quantity": 2,
-      "unitPrice": 79.99,
-      "total": 159.98
-    }
-  ],
-  "dealsApplied": [
-    {
-      "description": "Buy 2 Get 1 Free",
-      "discount": 79.99
-    },
-    {
-      "description": "10% Off Sitewide",
-      "discount": 28.00
-    }
-  ],
-  "subtotal": 289.97,
-  "totalDiscount": 107.99,
-  "totalPrice": 181.98
+  "code": "0",
+  "message": null,
+  "data": {
+    "orderId": 1,
+    "userId": 1,
+    "orderDate": "2025-07-20T18:15:06.701566Z",
+    "items": [
+      {
+        "productId": 2,
+        "productName": "Mouse",
+        "quantity": 3,
+        "originalPricePerUnit": 25.00,
+        "originalItemTotal": 75.00,
+        "discountApplied": 25.00,
+        "totalPriceAfterDiscount": 50.00
+      }
+    ],
+    "subtotal": 75.00,
+    "totalDiscountAmount": 25.00,
+    "totalAmount": 50.00
+  },
+  "success": true
 }
 ```
